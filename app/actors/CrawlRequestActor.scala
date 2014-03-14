@@ -23,14 +23,13 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
   val receive = idle
 
   val pageFetchRouter = context.actorOf(PageFetchActor.props.withRouter(FromConfig()), "pageFetchRouter")
-  val databaseServiceRouter = context.actorSelection("/user/databaseServiceRouter")
+  val databaseService = context.actorSelection("/user/databaseServiceRouter")
 
   override def preStart() = {
   }
 
   override def postStop() = {
     pageFetchRouter ! Broadcast(PoisonPill)
-    databaseServiceRouter ! Broadcast(PoisonPill)
   }
 
   def idle: Receive = LoggingReceive {
@@ -38,7 +37,7 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
       log.debug(s"Request received.  Becoming initializing.")
       context.setReceiveTimeout(10.seconds)
       become(initializing)
-      databaseServiceRouter ! CreateCrawlRequest(request)
+      databaseService ! CreateCrawlRequest(request)
     }
   }
 

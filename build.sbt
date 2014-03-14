@@ -6,9 +6,9 @@ version := "1.0-SNAPSHOT"
 resolvers += "spray nightlies repo" at "http://nightlies.spray.io"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka"     %% "akka-actor"     % "2.2.3",
-  "com.typesafe.akka"     %% "akka-remote"    % "2.2.3",
-  "com.typesafe.akka"     %% "akka-slf4j"     % "2.2.3",
+  "com.typesafe.akka"     %% "akka-actor"     % "2.2.4",
+  "com.typesafe.akka"     %% "akka-remote"    % "2.2.4",
+  "com.typesafe.akka"     %% "akka-slf4j"     % "2.2.4",
   "com.typesafe.play"     %% "play-slick"     % "0.6.0.1",
   "io.spray"              %  "spray-client"   % "1.2.0",
   "io.spray"              %  "spray-caching"  % "1.2.0",

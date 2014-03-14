@@ -21,9 +21,9 @@ class DatabaseServiceActor extends Actor {
     case CreateCrawlRequest(request) => {
       DB("crakken") withSession { implicit session =>
         val response = Try[CrawlRequest] {
-          val crawlRequests = TableQuery[CrawlRequests]
-          val id = (crawlRequests returning crawlRequests.map(_.id)) += request
-          CrawlRequest(id, request.origin, request.initialRecursionLevel, request.includeExternalLinks)
+          val inputRows = TableQuery[CrawlRequests]
+          val newId = (inputRows returning inputRows.map(_.id)) += request
+          request.copy(id = newId)
         }
         sender ! CreatedCrawlRequest(response)
       }
@@ -31,9 +31,9 @@ class DatabaseServiceActor extends Actor {
     case UpdateCrawlRequests(filter, transform) => {
       DB("crakken") withSession { implicit session =>
         val response = Try {
-          val crawlRequests = TableQuery[CrawlRequests]
-          val transformedRows = crawlRequests.filter(filter(_)).mapResult(row => transform(row))
-          transformedRows.foreach(row => crawlRequests.where(_.id === row.id.get).update(row))
+          val inputRows = TableQuery[CrawlRequests]
+          val transformedRows = inputRows.filter(filter(_)).mapResult(row => transform(row))
+          transformedRows.foreach(row => inputRows.where(_.id === row.id.get).update(row))
           transformedRows.iterator.toList
         }
         sender ! UpdatedCrawlRequests(response)
@@ -42,22 +42,74 @@ class DatabaseServiceActor extends Actor {
     case DeleteCrawlRequests(filter) => {
       DB("crakken") withSession { implicit session =>
         val response = Try {
-          val crawlRequests = TableQuery[CrawlRequests]
-          val rowsToDelete = crawlRequests.filter(filter(_))
+          val inputRows = TableQuery[CrawlRequests]
+          val rowsToDelete = inputRows.filter(filter(_))
           rowsToDelete.delete
           rowsToDelete.iterator.toList
         }
         sender ! DeletedCrawlRequests(response)
       }
     }
-  }
-}
+    case GetCrawlRequests(filter) => {
+      DB("crakken") withSession { implicit session =>
+        val response = Try {
+          val inputRows = TableQuery[CrawlRequests]
+          inputRows.filter(filter(_)).iterator.toList
+        }
+        sender ! GotCrawlRequests(response)
+      }
+    }
+
+    //
+    case CreatePageFetchRequest(request) => {
+      DB("crakken") withSession { implicit session =>
+        val response = Try[PageFetchRequest] {
+          val inputRows = TableQuery[PageFetchRequests]
+          val newId = (inputRows returning inputRows.map(_.id)) += request
+          request.copy(id = newId)
+        }
+        sender ! CreatedPageFetchRequest(response)
+      }
+    }
+    case UpdatePageFetchRequests(filter, transform) => {
+      DB("crakken") withSession { implicit session =>
+        val response = Try {
+          val inputRows = TableQuery[PageFetchRequests]
+          val transformedRows = inputRows.filter(filter(_)).mapResult(row => transform(row))
+          transformedRows.foreach(row => inputRows.where(_.id === row.id.get).update(row))
+          transformedRows.iterator.toList
+        }
+        sender ! UpdatedPageFetchRequests(response)
+      }
+    }
+    case DeletePageFetchRequests(filter) => {
+      DB("crakken") withSession { implicit session =>
+        val response = Try {
+          val inputRows = TableQuery[PageFetchRequests]
+          val rowsToDelete = inputRows.filter(filter(_))
+          rowsToDelete.delete
+          rowsToDelete.iterator.toList
+        }
+        sender ! DeletedPageFetchRequests(response)
+      }
+    }
+    case GetPageFetchRequests(filter) => {
+      DB("crakken") withSession { implicit session =>
+        val response = Try {
+          val inputRows = TableQuery[PageFetchRequests]
+          inputRows.filter(filter(_)).iterator.toList
+        }
+        sender ! GotPageFetchRequests(response)
+      }
+    }
+  }}
+
 
 //CrawlRequest inputs
-case class CreateCrawlRequest(request: CrawlRequest)
+case class Create[T](request: T)
 case class UpdateCrawlRequests(filter: CrawlRequests => Boolean, transform: CrawlRequest => CrawlRequest)
 case class DeleteCrawlRequests(filter: CrawlRequests => Boolean)
-case class GetCrawlRequests(filter: CrawlRequest => Boolean)
+case class GetCrawlRequests(filter: CrawlRequests => Boolean)
 
 //CrawlRequest outputs
 case class CreatedCrawlRequest(response: Try[CrawlRequest])
@@ -67,13 +119,13 @@ case class GotCrawlRequests(response: Try[List[CrawlRequest]])
 
 //PageFetchRequest inputs
 case class CreatePageFetchRequest(request: PageFetchRequest)
-case class UpdatePageFetchRequests(filter: PageFetchRequest => Boolean, transform: PageFetchRequest => PageFetchRequest)
-case class DeletePageFetchRequests(filter: PageFetchRequest => Boolean)
-case class GetPageFetchRequests(filter: PageFetchRequest => Boolean)
+case class UpdatePageFetchRequests(filter: PageFetchRequests => Boolean, transform: PageFetchRequest => PageFetchRequest)
+case class DeletePageFetchRequests(filter: PageFetchRequests => Boolean)
+case class GetPageFetchRequests(filter: PageFetchRequests => Boolean)
 
 //PageFetchRequest outputs
 case class CreatedPageFetchRequest(response: Try[PageFetchRequest])
 case class UpdatedPageFetchRequests(response: Try[List[PageFetchRequest]])
-case class DeletedPageFetchRequests(response: Try[Integer])
+case class DeletedPageFetchRequests(response: Try[List[PageFetchRequest]])
 case class GotPageFetchRequests(response: Try[List[PageFetchRequest]])
 
