@@ -11,29 +11,28 @@ import play.api.data.format.Formats._
 import models.database.CrawlRequest
 import akka.event._
 
-object Application extends Controller {
+object CrawlRequestController extends Controller {
 
-  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
-    def genString(o: AnyRef): String = o.getClass.getName
-    override def getClazz(o: AnyRef): Class[_] = o.getClass
+  val crawlRouter = Akka.system.actorSelection("/user/crawlRequestRouter")
+
+  def create = Action {
+      Ok(views.html.crawlrequest.index(crawlRequestForm))
   }
 
-  val log = Logging(Akka.system, this)
-  def index = Action {
-      Ok(views.html.index(crawlRequestForm))
-  }
-
-  def submitCrawlRequest = Action { implicit request =>
+  def submit = Action { implicit request =>
       crawlRequestForm.bindFromRequest.fold(
-        errors => BadRequest(views.html.index(errors)),
+        errors => BadRequest(views.html.crawlrequest.index(errors)),
         crawlRequest => {
-          val crawlRouter = Akka.system.actorSelection("/user/crawlRequestRouter")
+
           crawlRouter ! crawlRequest
-          Ok(views.html.submitCrawlRequest())
+          Ok(views.html.crawlrequest.submit())
         }
       )
-
   }
+
+  def list = TODO
+
+  def get(id: Long) = TODO
 
   val crawlRequestForm: Form[CrawlRequest] =
     Form(
