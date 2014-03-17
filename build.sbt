@@ -1,6 +1,6 @@
-import bintray.Keys._
 import sbtrelease._
 import ReleaseStateTransformations._
+import ReleaseKeys._
 
 name := "crakken"
 
@@ -36,15 +36,22 @@ scalacOptions += "-feature"
 
 initialCommands in console := "import scalaz._, Scalaz._"
 
-bintrayPublishSettings
-
-bintrayOrganization in bintray := Some("crakkencrawler")
-
-repository in bintray := "crakken-releases"
-
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 releaseSettings
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,              // : ReleaseStep
+  inquireVersions,                        // : ReleaseStep
+  runTest,                                // : ReleaseStep
+  setReleaseVersion,                      // : ReleaseStep
+  commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
+  tagRelease,                             // : ReleaseStep
+  releaseTask(dist),                      // : Creates a Play! distribution
+  setNextVersion,                         // : ReleaseStep
+  commitNextVersion,                      // : ReleaseStep
+  pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
+)
 
 buildInfoSettings
 
