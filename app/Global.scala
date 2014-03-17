@@ -12,14 +12,16 @@ import play.api.Play.current
 import play.libs.Akka
 
 object Global extends GlobalSettings{
-  //val log = Logging(Akka.system, this)
 
   override def onStart(app: Application) {
     val crawlRequestRouter = Akka.system.actorOf(Props[CrawlRequestActor].withRouter(FromConfig()), "crawlRequestRouter")
+    val databaseServiceRouter = Akka.system.actorOf(Props[DatabaseServiceActor].withRouter(FromConfig()), "databaseServiceRouter")
   }
 
   override def onStop(app: Application) {
-    val crawlRequestRouter = Akka.system.actorSelection("/crawlRequestRouter")
+    val crawlRequestRouter = Akka.system.actorSelection("/user/crawlRequestRouter")
     crawlRequestRouter ! Broadcast(PoisonPill)
+    val databaseService = Akka.system.actorSelection("/user/databaseServiceRouter")
+    databaseService ! Broadcast(PoisonPill)
   }
 }

@@ -31,6 +31,7 @@ class PageFetchActor extends Actor with UnboundedStash{
 
   val log = Logging(context.system, this)
   val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
+  val databaseService = context.actorSelection("")
 
   def receive = idle
 

@@ -15,3 +15,5 @@ dist
 /.settings
 /project/*-shim.sbt
 /activator-sbt-*-shim.sbt
+bin
+.target
