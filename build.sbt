@@ -1,9 +1,6 @@
-name := """crakken"""
+name := "crakken"
 
-version := "1.0-SNAPSHOT"
-
-//resolvers += "spray repo" at "http://repo.spray.io"
-resolvers += "spray nightlies repo" at "http://nightlies.spray.io"
+resolvers += "spray repo" at "http://repo.spray.io"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka"     %% "akka-actor"     % "2.2.4",
@@ -34,3 +31,5 @@ scalacOptions += "-feature"
 initialCommands in console := "import scalaz._, Scalaz._"
 
 play.Project.playScalaSettings
+
+releaseSettings
