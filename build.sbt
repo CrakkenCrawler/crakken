@@ -36,8 +36,6 @@ scalacOptions += "-feature"
 
 initialCommands in console := "import scalaz._, Scalaz._"
 
-publishMavenStyle := false
-
 bintrayPublishSettings
 
 bintrayOrganization in bintray := Some("crakkencrawler")
@@ -54,6 +52,6 @@ sourceGenerators in Compile <+= buildInfo
 
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 
-buildInfoPackage := "hello"
+buildInfoPackage := "crakken"
 
 play.Project.playScalaSettings
