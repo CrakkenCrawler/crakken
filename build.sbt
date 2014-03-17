@@ -6,8 +6,6 @@ name := "crakken"
 
 organization := "crakkencrawler"
 
-version := "0.1.0-SNAPSHOT"
-
 resolvers += "spray repo" at "http://repo.spray.io"
 
 libraryDependencies ++= Seq(
