@@ -1,6 +1,7 @@
 @(crawlRequestForm: Form[models.database.CrawlRequest])
 
 @import helper._
+@import crakken._
 
 <!DOCTYPE html>
 <html>
@@ -20,6 +21,8 @@
         <input name="id" type="hidden" value="" />
         <input type="submit" />
     }
+
+    <footer>Crakken Web Crawler v. @BuildInfo.version</footer>
     @*<div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
             <div class="container">
