@@ -1,6 +1,7 @@
 import sbtrelease._
 import ReleaseStateTransformations._
 import ReleaseKeys._
+import com.typesafe.sbt.packager.universal.Keys
 
 name := "crakken"
 
@@ -49,7 +50,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,                      // : ReleaseStep
   commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
   tagRelease,                             // : ReleaseStep
-  publishArtifacts,// : Creates a Play! distribution
+  releaseTask(Keys.dist),                 // : Creates a Play! distribution
   setNextVersion,                         // : ReleaseStep
   commitNextVersion,                      // : ReleaseStep
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
