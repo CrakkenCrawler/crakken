@@ -32,6 +32,8 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test"
 )
 
+play.Project.playScalaSettings
+
 scalacOptions += "-feature"
 
 initialCommands in console := "import scalaz._, Scalaz._"
@@ -47,7 +49,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,                      // : ReleaseStep
   commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
   tagRelease,                             // : ReleaseStep
-  releaseTask(dist),                      // : Creates a Play! distribution
+  releaseTask(TaskKey[File]("dist", "Creates the distribution packages.")),// : Creates a Play! distribution
   setNextVersion,                         // : ReleaseStep
   commitNextVersion,                      // : ReleaseStep
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
@@ -60,5 +62,3 @@ sourceGenerators in Compile <+= buildInfo
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 
 buildInfoPackage := "crakken"
-
-play.Project.playScalaSettings
