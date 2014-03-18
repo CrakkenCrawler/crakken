@@ -49,3 +49,15 @@ sourceGenerators in Compile <+= buildInfo
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 
 buildInfoPackage := "crakken"
+
+gitSettings ++ Seq(
+  gitTagName <<= (version) map { (v) =>
+    "v%s".format(v)
+  },
+  gitCommitMessage <<= (version) map { (v) =>
+    "release commit for %s".format(v)
+  },
+  gitTag <<= (gitTagName) map { tag =>
+    ("git tag -f -m %s %s".format(tag, tag)).run(false).exitValue //force so that we can move SNAPSHOT tags
+  }
+)
