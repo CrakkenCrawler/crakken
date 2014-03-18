@@ -1,11 +1,10 @@
-import sbtrelease._
-import ReleaseStateTransformations._
-import ReleaseKeys._
-import com.typesafe.sbt.packager.universal.Keys
+import com.twitter.sbt._
 
 name := "crakken"
 
 organization := "crakkencrawler"
+
+version := "0.1.8-SNAPSHOT"
 
 resolvers += "spray repo" at "http://repo.spray.io"
 
@@ -41,20 +40,7 @@ initialCommands in console := "import scalaz._, Scalaz._"
 
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
-releaseSettings
-
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,              // : ReleaseStep
-  inquireVersions,                        // : ReleaseStep
-  runTest,                                // : ReleaseStep
-  setReleaseVersion,                      // : ReleaseStep
-  commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
-  tagRelease,                             // : ReleaseStep
-  releaseTask(Keys.dist),                 // : Creates a Play! distribution
-  setNextVersion,                         // : ReleaseStep
-  commitNextVersion,                      // : ReleaseStep
-  pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
-)
+seq(StandardProject.newSettings: _*)
 
 buildInfoSettings
 
