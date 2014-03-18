@@ -32,13 +32,9 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test"
 )
 
-play.Project.playScalaSettings
-
 scalacOptions += "-feature"
 
 initialCommands in console := "import scalaz._, Scalaz._"
-
-licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 seq(StandardProject.newSettings: _*)
 
@@ -61,3 +57,5 @@ gitSettings ++ Seq(
     ("git tag -f -m %s %s".format(tag, tag)).run(false).exitValue //force so that we can move SNAPSHOT tags
   }
 )
+
+play.Project.playScalaSettings
