@@ -49,7 +49,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,                      // : ReleaseStep
   commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
   tagRelease,                             // : ReleaseStep
-  releaseTask(TaskKey[File]("dist", "Creates the distribution packages.")),// : Creates a Play! distribution
+  publishArtifacts,// : Creates a Play! distribution
   setNextVersion,                         // : ReleaseStep
   commitNextVersion,                      // : ReleaseStep
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
