@@ -49,3 +49,9 @@ sourceGenerators in Compile <+= buildInfo
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 
 buildInfoPackage := "crakken"
+
+gitSettings ++ Seq(
+  gitTagName <<= (version) map { (v) =>
+    "v%s".format(v)
+  }
+)
