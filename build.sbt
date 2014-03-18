@@ -53,5 +53,8 @@ buildInfoPackage := "crakken"
 gitSettings ++ Seq(
   gitTagName <<= (version) map { (v) =>
     "v%s".format(v)
+  },
+  gitCommitMessage <<= (version) map { (v) =>
+    "release commit for %s".format(v)
   }
 )
