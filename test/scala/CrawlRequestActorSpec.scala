@@ -20,8 +20,8 @@ class CrawlRequestActorSpec (_system: ActorSystem) extends TestKit(_system) with
 
   "A CrawlRequestActor" must {
     "begin crawling when told to" in {
-      val crawlRequestActor = system.actorOf(Props[CrawlRequestActor])
-      crawlRequestActor ! CrawlRequest(None, "http://www.google.com", 1, false)
+      //val crawlRequestActor = system.actorOf(Props[CrawlRequestActor])
+      //crawlRequestActor ! CrawlRequest(None, "http://www.google.com", 1, false)
     }
   }
 

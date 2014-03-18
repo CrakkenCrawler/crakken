@@ -1,12 +1,10 @@
-import bintray.Keys._
-import sbtrelease._
-import ReleaseStateTransformations._
+import com.twitter.sbt._
 
 name := "crakken"
 
 organization := "crakkencrawler"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.8-SNAPSHOT"
 
 resolvers += "spray repo" at "http://repo.spray.io"
 
@@ -34,20 +32,20 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test"
 )
 
+play.Project.playScalaSettings
+
 scalacOptions += "-feature"
 
 initialCommands in console := "import scalaz._, Scalaz._"
 
-publishMavenStyle := false
-
-bintrayPublishSettings
-
-bintrayOrganization in bintray := Some("crakkencrawler")
-
-repository in bintray := "crakken-releases"
-
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
-releaseSettings
+seq(StandardProject.newSettings: _*)
 
-play.Project.playScalaSettings
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+
+buildInfoPackage := "crakken"

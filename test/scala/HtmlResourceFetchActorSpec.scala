@@ -16,7 +16,7 @@ class PageFetchActorSpec(_system: ActorSystem) extends TestKit(_system) with Imp
   }
 
   "An PageFetchActor" must {
-    "return content from eyemed.com" in {
+    /*"return content from eyemed.com" in {
       val actorRef = system.actorOf(PageFetchActor.props)
       actorRef ! PageFetchRequest(None, None, "http://portal.eyemedvisioncare.com/wps/portal/em/eyemed", None, 0, false)
       val response = expectMsgClass(classOf[PageFetchSuccess])
@@ -39,6 +39,6 @@ class PageFetchActorSpec(_system: ActorSystem) extends TestKit(_system) with Imp
       actorRef ! PageFetchRequest(None, None, "http://www.google.com/nosuchurl", None, 0, false)
       val response = expectMsgClass(classOf[PageFetchSuccess])
       //println(response.html)
-    }
+    }  */
   }
 }
