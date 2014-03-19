@@ -1,12 +1,6 @@
 package models.database
 
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
 import play.api.db.slick.Config.driver.simple._
-import play.api.data.format.Formats._
-import slick.jdbc._
-import utils._
 
 case class CrawlRequest(id: Option[Long], origin: String, initialRecursionLevel: Int, includeExternalLinks: Boolean) extends Entity
 

@@ -1,8 +1,5 @@
 package models.database
 
-import play.api.data.Forms._
-import play.api.data.format.Formats._
-import play.api.data.validation.Constraints._
 import play.api.db.slick.Config.driver.simple._
 
 import scalaz.Lens

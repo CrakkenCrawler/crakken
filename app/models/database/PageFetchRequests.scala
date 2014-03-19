@@ -15,7 +15,7 @@ class PageFetchRequests(tag: Tag) extends Table[PageFetchRequest](tag, "PAGE_FET
   def crawlRequestId = column[Option[Long]]("CRAWLREQUEST_ID")
   def url = column[String]("URL", O.DBType("VARCHAR(2048)"))
   def statusCode = column[Option[Int]]("STATUS_CODE")
-  def content = column[Option[String]]("CONTENT", O.DBType("CLOB"))
+  def content = column[Option[String]]("CONTENT", O.DBType("LONGTEXT"))
   def recursionLevel = column[Int]("RECURSION_LEVEL")
   def includeExternalLinks = column[Boolean]("INCLUDE_EXTERNALS")
   def * = (id, crawlRequestId, url, statusCode, content, recursionLevel, includeExternalLinks) <> (PageFetchRequest.tupled, PageFetchRequest.unapply)

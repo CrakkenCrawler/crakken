@@ -1,4 +1,4 @@
-package actors
+package actor
 
 import scala.util._
 import akka.actor._
@@ -7,35 +7,34 @@ import models.database._
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
-import play.api.libs.concurrent.Execution.Implicits._
 
 import scalaz.Lens
 
 object DatabaseHelper {
-  def create[A <: Entity, B <: Table[A] with TableIdentity](request: A)(implicit mh: ModelHelper[A, B], l: Lens[A, Option[Long]]): Try[A] = DB("crakken") withSession { implicit session =>
+  def create[A <: Entity, B <: Table[A] with TableIdentity](request: A)(implicit mh: ModelHelper[A, B], l: Lens[A, Option[Long]]): Try[A] = DB withSession { implicit session =>
     Try {          
       val inputRows = TableQuery(mh.buildTableClass)
       val newId = (inputRows returning inputRows.map(_.id)) += request
       l.set(request, newId)
     }
   }
-  def update[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean, transform: A => A)(implicit mh: ModelHelper[A, B]): Try[List[A]] = DB("crakken") withSession { implicit session =>
+  def update[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean, transform: A => A)(implicit mh: ModelHelper[A, B]): Try[List[A]] = DB withSession { implicit session =>
     Try {
       val inputRows = TableQuery(mh.buildTableClass)
-      val transformedRows = inputRows.filter(filter(_)).mapResult(row => transform(row))
+      val transformedRows = inputRows.filter(filter).mapResult(row => transform(row))
       transformedRows.foreach(row => inputRows.where(_.id === row.id.get).update(row))
       transformedRows.iterator.toList
     }
   }
-  def delete[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean)(implicit mh: ModelHelper[A, B]): Try[List[A]] = DB("crakken") withSession { implicit session =>
+  def delete[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean)(implicit mh: ModelHelper[A, B]): Try[List[A]] = DB withSession { implicit session =>
     Try {
       val inputRows = TableQuery(mh.buildTableClass)
-      val rowsToDelete = inputRows.filter(filter(_))
+      val rowsToDelete = inputRows.filter(filter)
       rowsToDelete.delete
       rowsToDelete.iterator.toList
     }
   }
-  def get[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean)(implicit mh: ModelHelper[A,B]): Try[List[A]] = DB("crakken") withSession { implicit session =>
+  def get[A <: Entity, B <: Table[A] with TableIdentity](filter: B => Boolean)(implicit mh: ModelHelper[A,B]): Try[List[A]] = DB withSession { implicit session =>
     Try {
       val inputRows = TableQuery(mh.buildTableClass)
       inputRows.filter(filter(_)).iterator.toList
@@ -43,9 +42,6 @@ object DatabaseHelper {
   } 
 }
 
-/**
- * Created by 601292 on 3/13/14.
- */
 class DatabaseServiceActor extends Actor {
   import DatabaseHelper._
   import ModelHelpers._

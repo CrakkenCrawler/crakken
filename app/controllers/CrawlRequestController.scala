@@ -1,15 +1,11 @@
 package controllers
 
-import akka.actor.ActorSystem
 import play.api.mvc.{Action, Controller}
 import play.libs.Akka
-import actors.CrawlRequestActor
-import models.database._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.format.Formats._
 import models.database.CrawlRequest
-import akka.event._
 
 object CrawlRequestController extends Controller {
 

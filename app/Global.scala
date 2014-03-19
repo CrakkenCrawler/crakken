@@ -1,27 +1,28 @@
+import actor._
 import akka.actor._
 import akka.routing._
-import models.database.CrawlRequests
-import play.api.db._
+import akka.routing.Broadcast
 import play.api._
 import play.api.GlobalSettings
-import play.api.db.slick.Config.driver.simple._
-import com.typesafe.config._
-import actors._
+import spray.client.pipelining._
 
-import play.api.Play.current
-import play.libs.Akka
+import play.libs.Akka._
 
 object Global extends GlobalSettings{
 
   override def onStart(app: Application) {
-    val crawlRequestRouter = Akka.system.actorOf(Props[CrawlRequestActor].withRouter(FromConfig()), "crawlRequestRouter")
-    val databaseServiceRouter = Akka.system.actorOf(Props[DatabaseServiceActor].withRouter(FromConfig()), "databaseServiceRouter")
+    val databaseServiceRouter = system.actorOf(Props[DatabaseServiceActor].withRouter(FromConfig()), "databaseServiceRouter")
+    val pageFetchRequestRouter = system.actorOf(Props(classOf[PageFetchActor],sendReceive(system,system.dispatcher)).withRouter(FromConfig()), "pageFetchRequestRouter")
+    system.actorOf(Props(classOf[CrawlRequestActor],pageFetchRequestRouter, databaseServiceRouter).withRouter(FromConfig()), "crawlRequestRouter")
   }
 
   override def onStop(app: Application) {
-    val crawlRequestRouter = Akka.system.actorSelection("/user/crawlRequestRouter")
+    val crawlRequestRouter = system.actorSelection("/user/crawlRequestRouter")
     crawlRequestRouter ! Broadcast(PoisonPill)
-    val databaseService = Akka.system.actorSelection("/user/databaseServiceRouter")
+    val databaseService = system.actorSelection("/user/databaseServiceRouter")
     databaseService ! Broadcast(PoisonPill)
+    val pageFetchRequestRouter = system.actorSelection("/user/pageFetchRequestRouter")
+    pageFetchRequestRouter ! Broadcast(PoisonPill)
+    system.shutdown()
   }
 }

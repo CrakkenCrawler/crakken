@@ -1,35 +1,25 @@
-package actors
+package actor
+
 
 import akka.actor._
 import akka.event._
-import play.api.db.slick.DB
-import play.api.db.slick.Config.driver.simple._
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.Play.current
-import java.lang.Exception
 import scala.concurrent.duration._
 import scala.util._
 
+import actor.Testing._
 import models.database._
-import akka.routing._
+import actor.Testing.GetState
+import akka.util.Timeout
 
-object CrawlRequestActor {
-  def props = Props[CrawlRequestActor]
-}
-
-class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
+class CrawlRequestActor(val pageFetchActor: ActorRef, val databaseActor: ActorRef) extends Actor with UnboundedStash with ActorLogging {
   import context._
 
   val receive = idle
-
-  val pageFetchRouter = context.actorOf(PageFetchActor.props.withRouter(FromConfig()), "pageFetchRouter")
-  val databaseService = context.actorSelection("/user/databaseServiceRouter")
 
   override def preStart() = {
   }
 
   override def postStop() = {
-    pageFetchRouter ! Broadcast(PoisonPill)
   }
 
   def idle: Receive = LoggingReceive {
@@ -37,8 +27,11 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
       log.debug(s"Request received.  Becoming initializing.")
       context.setReceiveTimeout(10.seconds)
       become(initializing)
-      databaseService ! CreateCrawlRequest(request)
+      unstashAll
+      databaseActor ! CreateCrawlRequest(request)
     }
+
+    case GetState() => sender ! Idle()
   }
 
   def initializing: Receive = LoggingReceive {
@@ -47,6 +40,7 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
         case Success(request) => {
           log.debug(s"Initialization complete.  Becoming processing.")
           become(processing(request, List.empty))
+          unstashAll
           context.setReceiveTimeout(10.seconds)
           self ! PageFetchRequest(None, request.id, request.origin, None, None, request.initialRecursionLevel, request.includeExternalLinks)
         }
@@ -54,6 +48,7 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
           log.debug(s"Initialization failed.  Becoming idle.")
           context.setReceiveTimeout(Duration.Undefined)
           become(idle)
+          unstashAll()
         }
       }
     }
@@ -61,26 +56,43 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
       log.debug(s"Initialization timed out.  Becoming idle.")
       context.setReceiveTimeout(Duration.Undefined)
       become(idle)
+      unstashAll()
     }
 
+    case GetState() => sender ! Initializing()
     case _ => stash
   }
 
   def processing(crawlRequest: CrawlRequest, history: List[String]): Receive = LoggingReceive {
-    case PageFetchSuccess(document, url) => {
-      log.debug("Page fetch received.")
+    case PageFetchSuccess(request) => {
+      databaseActor ! UpdatePageFetchRequests(row => row.id == request.id, _ => request)
     }
-    case PageFetchFailure(ex, url) => {
+    case PageFetchFailure(request, ex) => {
       log.debug("Page fetch failure received.")
     }
     case (request: PageFetchRequest) => {
+      implicit val timeout = Timeout(5.seconds)
       log.debug("Child page fetch request received.")
       if (!history.contains(request.url)) {
         become(processing(crawlRequest, history :+ request.url))
-        pageFetchRouter ! request
+        databaseActor ! CreatePageFetchRequest(request)
       }
     }
 
+    case CreatedPageFetchRequest(Success(pageFetchRequest)) => {
+      pageFetchActor ! pageFetchRequest
+    }
+    case CreatedPageFetchRequest(Failure(ex)) => {
+      //TODO Handle failure
+    }
+
+    case UpdatedPageFetchRequests(Success(pageFetchRequests)) => {
+      log.debug(s"Successfully updated ${pageFetchRequests.map(request => request.id)}}")
+    }case UpdatedPageFetchRequests(Failure(ex)) => {
+      //TODO: Handle failure
+    }
+
+    case GetState() => sender ! Processing()
     case ReceiveTimeout => {
       log.debug("No activity received for 10 seconds.  Becoming idle.")
       context.setReceiveTimeout(Duration.Undefined)
@@ -90,3 +102,5 @@ class CrawlRequestActor extends Actor with UnboundedStash with ActorLogging {
     case _ => stash()
   }
 }
+
+
