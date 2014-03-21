@@ -5,11 +5,11 @@ import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 import play.api.test.Helpers._
 import actor._
-import actor.CreateCrawlRequest
 import scala.util.Success
 import models.database.PageFetchRequest
 import models.database.CrawlRequest
 import play.api.test.FakeApplication
+import java.io.File
 
 class DatabaseServiceActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
 
@@ -31,8 +31,8 @@ class DatabaseServiceActorSpec(_system: ActorSystem) extends TestKit(_system) wi
 
         databaseActor ! CreatePageFetchRequest(pfr)
         expectMsg(CreatedPageFetchRequest(Success(pfrWithId)))
-        databaseActor ! UpdatePageFetchRequests(row => row.id === pfrWithId.id, row => pfrWithIdAndContent)
-        expectMsg(UpdatedPageFetchRequests(Success(List(pfrWithIdAndContent))))
+        databaseActor ! UpdatePageFetchRequests(row => row.id === pfrWithId.id,  pfrWithIdAndContent)
+        expectMsg(UpdatedPageFetchRequests(Success(1)))
       }
     }
   }
