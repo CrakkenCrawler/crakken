@@ -14,17 +14,13 @@ import play.api.test.FakeApplication
 class DatabaseServiceActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("DatabaseServiceActorSpec"))
-  val settings = inMemoryDatabase() +
-    ("db.default.driver"    ->  "org.h2.Driver"               ) +
-    ("db.default.url"       ->  "jdbc:h2:mem:play;MODE=MYSQL" ) +
-    ("db.default.user"      ->  "sa"                          ) +
-    ("db.default.password"  ->  ""                            )
+  val settings = inMemoryDatabase()
 
   "A DatabaseServiceActor" must {
 
-    "create a new CR" in {
+    "create and update a new PFR" in {
 
-      running(FakeApplication(additionalConfiguration = settings)) {
+      running(FakeApplication(additionalConfiguration = settings, path = new File("test/resources/conf/application.conf"), withGlobal = Some(SimpleGlobal)d)) {
         val databaseActor = system.actorOf(Props(classOf[DatabaseServiceActor]))
 
         val cr = CrawlRequest(None, "http://www.google.com", 1, false)
