@@ -54,7 +54,7 @@ class CrawlRequestActorSpec (_system: ActorSystem) extends TestKit(_system) with
     }
     "on successful fetch, ask the database to update the result" in {
       crawlRequestActor ! PageFetchSuccess(pfrWithIdAndContent)
-      databaseProbe.expectMsgClass(classOf[Updated])
+      databaseProbe.expectMsgClass(classOf[UpdateEntities[PageFetchRequest,PageFetchRequests]])
       crawlRequestActor ! GetState()
       expectMsg(Processing())
     }
