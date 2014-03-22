@@ -49,7 +49,7 @@ class DatabaseServiceActor extends Actor with ActorLogging {
       }
     })
     case UpdateEntities(f, newRow, q) => sender ! Updated(DB withSession { implicit session =>
-      Try {
+      Try {        
         val rowsUpdated = q.filter(f).update(newRow)
         //val transformedRows = filteredRows.map(row => transform(row))
         log.debug(s"Update received. ${rowsUpdated} rows updated.")

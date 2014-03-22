@@ -11,6 +11,8 @@ import models.database._
 import actor.Testing.GetState
 import akka.util.Timeout
 
+import scala.reflect._
+
 class CrawlRequestActor(val pageFetchActor: ActorRef, val databaseActor: ActorRef) extends Actor with UnboundedStash with ActorLogging {
   import context._
 
@@ -33,23 +35,27 @@ class CrawlRequestActor(val pageFetchActor: ActorRef, val databaseActor: ActorRe
 
     case GetState() => sender ! Idle()
   }
-
+  
+  val fail: () => Unit = () => { 
+    log.debug(s"Initialization failed.  Becoming idle.")
+    context.setReceiveTimeout(Duration.Undefined)
+    become(idle)
+    unstashAll    
+  }
+  
   def initializing: Receive = LoggingReceive {
     case Created(response) => {
       response match {
-        case Success(request) => {
-          log.debug(s"Initialization complete.  Becoming processing.")
-          //become(processing(request, List.empty))
-          unstashAll
-          context.setReceiveTimeout(10.seconds)
-          //self ! PageFetchRequest(None, request.id, request.origin, None, None, request.initialRecursionLevel, request.includeExternalLinks)
+        case Success(request) => {          
+          classTag[CrawlRequest].unapply(request).map { r =>
+            log.debug(s"Initialization complete.  Becoming processing.")
+            become(processing(r, List.empty))
+            unstashAll
+            context.setReceiveTimeout(10.seconds)
+            self ! PageFetchRequest(None, r.id, r.origin, None, None, r.initialRecursionLevel, r.includeExternalLinks)
+          }.getOrElse(fail())
         }
-        case Failure(ex) => {
-          log.debug(s"Initialization failed.  Becoming idle.")
-          context.setReceiveTimeout(Duration.Undefined)
-          become(idle)
-          unstashAll()
-        }
+        case Failure(ex) => fail()
       }
     }
     case ReceiveTimeout => {
@@ -65,7 +71,7 @@ class CrawlRequestActor(val pageFetchActor: ActorRef, val databaseActor: ActorRe
 
   def processing(crawlRequest: CrawlRequest, history: List[String]): Receive = LoggingReceive {
     case PageFetchSuccess(request) => {
-      databaseActor ! UpdateEntities((row: PageFetchRequests) => row.id == request.id, (_: PageFetchRequests) => request, PageFetchRequestQuery)
+      databaseActor ! UpdateEntities((row: PageFetchRequests) => row.id == request.id, request, PageFetchRequestQuery)
     }
     case PageFetchFailure(request, ex) => {
       log.debug("Page fetch failure received.")
@@ -88,7 +94,8 @@ class CrawlRequestActor(val pageFetchActor: ActorRef, val databaseActor: ActorRe
 
     case Updated(Success(pageFetchRequests)) => {
       //log.debug(s"Successfully updated ${pageFetchRequests.map(request => request.id)}}")
-    }case Updated(Failure(ex)) => {
+    }
+    case Updated(Failure(ex)) => {
       //TODO: Handle failure
     }
 
