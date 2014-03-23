@@ -8,9 +8,9 @@ case class PageFetchRequest(id: Option[Long],
                             statusCode: Option[Int],
                             content: Option[String],
                             recursionLevel: Int,
-                            includeExternalLinks: Boolean) extends Entity
+                            includeExternalLinks: Boolean)
 
-class PageFetchRequests(tag: Tag) extends Table[PageFetchRequest](tag, "PAGE_FETCH_REQUESTS") with TableIdentity {
+class PageFetchRequests(tag: Tag) extends Table[PageFetchRequest](tag, "PAGE_FETCH_REQUESTS") {
   def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
   def crawlRequestId = column[Option[Long]]("CRAWLREQUEST_ID")
   def url = column[String]("URL", O.DBType("VARCHAR(2048)"))
@@ -20,3 +20,5 @@ class PageFetchRequests(tag: Tag) extends Table[PageFetchRequest](tag, "PAGE_FET
   def includeExternalLinks = column[Boolean]("INCLUDE_EXTERNALS")
   def * = (id, crawlRequestId, url, statusCode, content, recursionLevel, includeExternalLinks) <> (PageFetchRequest.tupled, PageFetchRequest.unapply)
 }
+
+object PageFetchRequestQuery extends TableQuery(new PageFetchRequests(_))

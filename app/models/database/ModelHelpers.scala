@@ -1,30 +1,18 @@
 package models.database
 
 import play.api.db.slick.Config.driver.simple._
+import scala.util._
 
-import scalaz.Lens
+import scala.slick.lifted.CanBeQueryCondition
 
-trait Entity {
-  def id: Option[Long] 
-}
+case class CreateEntity[A, B <: Table[A]](entity: A, q: TableQuery[B])
+case class Created[A](entity: Try[A])
 
-trait TableIdentity {
-  def id: Column[Option[Long]]
-}
+case class UpdateEntities[A, B <: Table[A]](filter: B => Boolean, value: A, q: TableQuery[B])
+case class Updated(count: Try[Int])
 
-trait ModelHelper[A <: Entity, B <: Table[A] with TableIdentity] {
-  def buildTableClass(tag: Tag): B
-}
+case class DeleteEntities[B <: Table[A] forSome {type A}](filter: B => Boolean, q: TableQuery[B])
+case class Deleted(count: Try[Int])
 
-object ModelHelpers {
-  implicit object CrawlRequestsHelper extends ModelHelper[CrawlRequest, CrawlRequests] {
-    def buildTableClass(tag: Tag): CrawlRequests = new CrawlRequests(tag)  
-  }
-
-  implicit object PageFetchRequestsHelper extends ModelHelper[PageFetchRequest, PageFetchRequests] {
-    def buildTableClass(tag: Tag): PageFetchRequests = new PageFetchRequests(tag)  
-  }
-
-  implicit val cr_id = Lens.lensu[CrawlRequest,Option[Long]]((cr, i) => cr.copy(id = i), _.id)
-  implicit val pf_id = Lens.lensu[PageFetchRequest, Option[Long]]((pf, i) => pf.copy(id = i), _.id)
-}
+case class GetEntities[B <: Table[A] forSome {type A}](filter: B => Boolean, q: TableQuery[B])
+case class Entities[A](results: Try[List[A]])

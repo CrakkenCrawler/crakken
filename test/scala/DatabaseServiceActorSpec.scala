@@ -6,8 +6,7 @@ import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 import play.api.test.Helpers._
 import actor._
 import scala.util.Success
-import models.database.PageFetchRequest
-import models.database.CrawlRequest
+import models.database._
 import play.api.test.FakeApplication
 import java.io.File
 
@@ -20,19 +19,19 @@ class DatabaseServiceActorSpec(_system: ActorSystem) extends TestKit(_system) wi
 
     "create and update a new PFR" in {
 
-      running(FakeApplication(additionalConfiguration = settings, path = new File("test/resources/conf/application.conf"), withGlobal = Some(SimpleGlobal)d)) {
+      running(FakeApplication(additionalConfiguration = settings, path = new File("test/resources/conf/application.conf"), withGlobal = Some(SimpleGlobal))) {
         val databaseActor = system.actorOf(Props(classOf[DatabaseServiceActor]))
 
         val cr = CrawlRequest(None, "http://www.google.com", 1, false)
         val crWithId = cr.copy(id = Some(1))
         val pfr = PageFetchRequest(None, crWithId.id, crWithId.origin, None, None, crWithId.initialRecursionLevel, crWithId.includeExternalLinks)
         val pfrWithId = pfr.copy(id = Some(1))
-        val pfrWithIdAndContent = pfrWithId.copy(content = Some("<html />"), statusCode = Some(200))
+        val pfrWithIdAndContent = pfr.copy(content = Some("<html />"), statusCode = Some(200))
 
-        databaseActor ! CreatePageFetchRequest(pfr)
-        expectMsg(CreatedPageFetchRequest(Success(pfrWithId)))
-        databaseActor ! UpdatePageFetchRequests(row => row.id === pfrWithId.id,  pfrWithIdAndContent)
-        expectMsg(UpdatedPageFetchRequests(Success(1)))
+        databaseActor ! CreateEntity(pfr, PageFetchRequestQuery)
+        expectMsg(Created(Success(pfrWithId)))
+        databaseActor ! UpdateEntities((row: PageFetchRequests) => row.id === pfrWithId.id,  pfrWithIdAndContent, PageFetchRequestQuery)
+        expectMsg(Updated(Success(1)))
       }
     }
   }

@@ -17,3 +17,4 @@ dist
 /activator-sbt-*-shim.sbt
 bin
 .target
+.cache

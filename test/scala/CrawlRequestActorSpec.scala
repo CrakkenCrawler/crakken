@@ -7,7 +7,7 @@ import akka.testkit._
 import org.scalatest._
 import scala.concurrent.duration._
 import scala.util.Success
-import models.database.{PageFetchRequest, CrawlRequest}
+import models.database._
 
 class CrawlRequestActorSpec (_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
 
@@ -38,23 +38,23 @@ class CrawlRequestActorSpec (_system: ActorSystem) extends TestKit(_system) with
     }
     "request that the DB insert a new crawl request in the database and become(initializing) when a new request is received" in {
       crawlRequestActor ! cr
-      databaseProbe.expectMsg(CreateCrawlRequest(cr))
+      databaseProbe.expectMsg(CreateEntity(cr, CrawlRequestQuery))
       crawlRequestActor ! GetState()
       expectMsg(Initializing())
     }
     "on successful initialization request, insert a new PFR into the database for the origin" in {
-      crawlRequestActor ! CreatedCrawlRequest(Success(crWithId))
-      databaseProbe.expectMsg(CreatePageFetchRequest(pfr))
+      crawlRequestActor ! Created(Success(crWithId))
+      databaseProbe.expectMsg(CreateEntity(pfr, PageFetchRequestQuery))
     }
     "on successful creation of the origin PFR row, become(processing) and ask the PageFetchActor to fetch" in {
-      crawlRequestActor ! CreatedPageFetchRequest(Success(pfrWithId))
+      crawlRequestActor ! Created(Success(pfrWithId))
       pageFetchRequestProbe.expectMsg(pfrWithId)
       crawlRequestActor ! GetState()
       expectMsg(Processing())
     }
     "on successful fetch, ask the database to update the result" in {
       crawlRequestActor ! PageFetchSuccess(pfrWithIdAndContent)
-      databaseProbe.expectMsgClass(classOf[UpdatePageFetchRequests])
+      databaseProbe.expectMsgClass(classOf[Updated])
       crawlRequestActor ! GetState()
       expectMsg(Processing())
     }
