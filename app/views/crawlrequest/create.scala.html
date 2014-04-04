@@ -1,0 +1,16 @@
+@(crawlRequestForm: Form[crakken.data.model.CrawlRequest])
+
+@import common.layout._
+@import crakken.controllers._
+@import helper._
+
+@mainlayout(title = "Release the Crakken!") {
+    @form(action = routes.CrawlRequestController.submit) {
+        @inputText(crawlRequestForm("origin"), '_label -> "Site to crawl: ")
+        @inputText(crawlRequestForm("initialRecursionLevel"), '_label -> "Crawl Depth: ")
+        @checkbox(crawlRequestForm("includeExternalLinks"), '_label -> "Include external sites: ")
+        <input name="id" type="hidden" value="" />
+        <input type="submit" />
+    }
+}
+

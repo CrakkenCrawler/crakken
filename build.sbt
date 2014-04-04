@@ -5,7 +5,7 @@ name := "crakken"
 
 organization := "crakkencrawler"
 
-version := "0.1.8-SNAPSHOT"
+version := "0.2.0-SNAPSHOT"
 
 resolvers += "spray repo" at "http://repo.spray.io"
 
@@ -19,16 +19,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"     %% "akka-actor"                 % akkaVersion,
   "com.typesafe.akka"     %% "akka-remote"                % akkaVersion,
   "com.typesafe.akka"     %% "akka-slf4j"                 % akkaVersion,
-  "com.typesafe.play"     %% "play-slick"                 % "0.6.0.1",
   "io.spray"              %  "spray-client"               % sprayVersion,
   "io.spray"              %  "spray-caching"              % sprayVersion,
   "org.jsoup"             %  "jsoup"                      % "1.7.3",
-  "org.scalaz"            %% "scalaz-core"                % scalazVersion,
-  "org.scalaz"            %% "scalaz-effect"              % scalazVersion,
-  "org.scalaz"            %% "scalaz-typelevel"           % scalazVersion,
-  "org.webjars"           %% "webjars-play"               % "2.2.1",
-  "org.webjars"           %  "bootstrap"                  % "2.3.1",
-  "mysql"                 % "mysql-connector-java"        % "5.1.29",
+  "org.reactivemongo"     %% "play2-reactivemongo"        % "0.10.2",
   jdbc,
   "com.typesafe.akka"     %% "akka-testkit"               % akkaVersion       % "test",
   "org.scalatest"         %% "scalatest"                  % "2.1.1"           % "test",

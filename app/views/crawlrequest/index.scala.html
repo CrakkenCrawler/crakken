@@ -1,38 +1,6 @@
-@(crawlRequestForm: Form[models.database.CrawlRequest])
+@(response: List[crakken.data.model.CrawlRequest])
+@import common.layout._
 
-@import helper._
-@import crakken._
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Release the Crakken!</title>
-    @*<link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
-    <script type='text/javascript' src='@routes.Assets.at("javascripts/index.min.js")'></script>  *@
-</head>
-<body>
-    @form(action = routes.CrawlRequestController.submit) {
-        @inputText(crawlRequestForm("origin"), '_label -> "Site to crawl: ")
-        @inputText(crawlRequestForm("initialRecursionLevel"), '_label -> "Crawl Depth: ")
-        @checkbox(crawlRequestForm("includeExternalLinks"), '_label -> "Include external sites: ")
-        <input name="id" type="hidden" value="" />
-        <input type="submit" />
-    }
-
-    <footer>Crakken Web Crawler v. @BuildInfo.version</footer>
-    @*<div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container">
-                <a class="brand" href="#">Reactive Stocks</a>
-                <form id="addsymbolform" class="navbar-form pull-right">
-                    <input id="addsymboltext" type="text" class="span2" placeholder="SYMBOL">
-                    <button type="submit" class="btn">Add Stock</button>
-                </form>
-            </div>
-        </div>
-    </div> *@
-</body>
-</html>
+@mainlayout(title = "Crawl Requests") {
+    @response
+}
