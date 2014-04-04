@@ -1,11 +1,9 @@
 package crakken
 
-import crakken.actor._
+import _root_.crakken.data.repository.MongoCrakkenRepository
+import _root_.crakken.actor._
 import akka.actor._
-import akka.routing.Broadcast
 import akka.routing._
-import crakken.data.repository.MongoCrakkenRepository
-import play.api.GlobalSettings
 import play.api._
 import play.libs.Akka._
 import spray.client.pipelining._
@@ -21,6 +19,7 @@ object Global extends GlobalSettings{
   val repositoryRouterPathName = actorPrefix + repositoryRouterName
   val pageFetchRequestRouterPathName = actorPrefix + pageFetchRequestRouterName
   val crawlRequestRouterPathName = actorPrefix + crawlRequestRouterName
+
 
   override def onStart(app: Application) {
     val repository = MongoCrakkenRepository

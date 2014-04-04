@@ -7,8 +7,17 @@ import play.api.data.Forms._
 import crakken.data.model.CrawlRequest
 import play.modules.reactivemongo.MongoController
 import crakken.Global
+import crakken.data.repository.CrawlRequestMessages
+import akka.pattern.ask
+import scala.util._
+import akka.util.Timeout
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
 
 object CrawlRequestController extends Controller with MongoController {
+  implicit val timeout = Timeout(10 seconds)
 
   val crawlRequestRouter = Akka.system.actorSelection(Global.crawlRequestRouterPathName)
   val repositoryRouter = Akka.system.actorSelection(Global.repositoryRouterPathName)
@@ -28,8 +37,12 @@ object CrawlRequestController extends Controller with MongoController {
       )
   }
 
-  def index = Action { implicit request =>
-    Ok(views.html.crawlrequest.index(List()))
+  def index = Action.async { request =>
+    val dbResponse = repositoryRouter ? CrawlRequestMessages.getAll
+    dbResponse map {
+      case CrawlRequestMessages.gotAll(Success(crawlRequests)) => Ok(views.html.crawlrequest.index(crawlRequests))
+      case CrawlRequestMessages.gotAll(Failure(ex)) => BadRequest(ex.toString)
+    }
   }
 
   def get(id: String) = TODO

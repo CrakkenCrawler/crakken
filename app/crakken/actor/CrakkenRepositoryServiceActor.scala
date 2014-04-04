@@ -22,7 +22,7 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
     }
     case CrawlRequestMessages.getAll  => {
       val replyTo = sender
-      repository.crawlRequestRepository.getAll() onComplete(tryResponse => replyTo ! CrawlRequestMessages.gotAll)
+      repository.crawlRequestRepository.getAll() onComplete(tryResponse => replyTo ! CrawlRequestMessages.gotAll(tryResponse))
     }
 
     case PageFetchRequestMessages.create(request) => {
