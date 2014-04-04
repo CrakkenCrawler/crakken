@@ -3,7 +3,7 @@ import sbtbuildinfo.Plugin._
 
 name := "crakken"
 
-organization := "crakkencrawler"
+organization := "crakken"
 
 version := "0.2.0-SNAPSHOT"
 
