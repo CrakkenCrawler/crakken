@@ -1,4 +1,4 @@
-@(title: String, scripts: Html = Html(""))(content: Html)
+@(title: String, pagescripts: Html = Html(""))(content: Html)
 
 @import common.tiles.{navbar,footer}
 
@@ -15,14 +15,17 @@
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
         @*<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">*@
+    </head>
+    <body>
+        <a href="http://www.reactivemanifesto.org/"> <img style="border: 0; position: fixed; right: 0; top:0; z-index: 9000" src="//d379ifj7s9wntv.cloudfront.net/reactivemanifesto/images/ribbons/we-are-reactive-white-right.png"> </a>
+        @navbar()
+        <div class="container">
+            @content
+        </div>
+        @footer()
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
         <script type='text/javascript' src='@routes.Assets.at("javascripts/index.min.js")'></script>
-        @scripts
-    </head>
-    <body>
-        @navbar()
-        <section class="content">@content</section>
-        @footer()
+        @pagescripts
     </body>
 </html>
