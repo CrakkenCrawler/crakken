@@ -1,0 +1,8 @@
+@(request: crakken.data.model.CrawlRequest)
+
+<tr>
+    <td>@request.id</td>
+    <td>@request.origin</td>
+    <td>@request.initialRecursionLevel</td>
+    <td>@if(request.includeExternalLinks) {<span class="glyphicon glyphicon-ok"></span>}</td>
+</tr>
