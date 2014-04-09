@@ -33,11 +33,7 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
     }
     case GridFsMessages.getById(id: String)  => {
       val replyTo = sender
-      repository.gridFsRepository.getById(id) onComplete(tryResponse => {
-        val response = GridFsMessages.gotById(tryResponse)
-        log.debug(s"###Responding with GridFs ${response}")
-        replyTo ! response
-      })
+      repository.gridFsRepository.getById(id) onComplete(tryResponse => replyTo ! GridFsMessages.gotById(tryResponse))
     }
 
     case PageFetchRequestMessages.create(request) => {
@@ -46,11 +42,7 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
     }
     case PageFetchRequestMessages.getById(id: String)  => {
       val replyTo = sender
-      repository.pageFetchRequestRepository.getById(id) onComplete(tryResponse => {
-        val response = PageFetchRequestMessages.gotById(tryResponse)
-        log.debug(s"###Responding with PageFetchRequest ${response}")
-        replyTo ! PageFetchRequestMessages.gotById(tryResponse)
-      })
+      repository.pageFetchRequestRepository.getById(id) onComplete(tryResponse => replyTo ! PageFetchRequestMessages.gotById(tryResponse))
     }
     case PageFetchRequestMessages.getByCrId(id: String)  => {
       val replyTo = sender
