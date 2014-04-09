@@ -2,6 +2,7 @@ package crakken.actor
 
 import akka.actor._
 import akka.event._
+import akka.pattern.ask
 import crakken.utils.JSoupExtensions.implicits._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -11,12 +12,24 @@ import spray.client.pipelining._
 import spray.http.HttpResponse
 import spray.http.Uri
 import crakken.data.model.PageFetchRequest
+import scala.util.Success
+import crakken.data.repository.GridFsMessages
+import akka.util.{Timeout, ByteString}
+import scala.concurrent.duration._
+import reactivemongo.bson.BSONDocument
 
-class PageFetchActor(pipeline: SendReceive) extends Actor with UnboundedStash{
+import scala.language.postfixOps
+
+object PageFetchActor {
+  def props(pipeline: SendReceive, repositoryActor: ActorRef) = Props(new PageFetchActor(pipeline, repositoryActor))
+}
+class PageFetchActor(pipeline: SendReceive, repositoryActor: ActorRef) extends Actor with UnboundedStash{
 
   import ExecutionContext.Implicits.global
 
   val log = Logging(context.system, this)
+
+  implicit val timeout = Timeout(5 seconds)
 
   def receive = idle
 
@@ -29,7 +42,8 @@ class PageFetchActor(pipeline: SendReceive) extends Actor with UnboundedStash{
         requestWithStatus <- Future(request.copy(statusCode = Some(response.status.intValue)))
         parsedDoc <- Future(Jsoup.parse(response.entity.asString))
         normalizedDoc <- Future(normalizeLinks(parsedDoc, Uri(requestWithStatus.url)))
-        requestWithContent <- Future(requestWithStatus.copy(content = Some(normalizedDoc.html)))
+        GridFsMessages.created(Success(documentId)) <- repositoryActor ? GridFsMessages.create(ByteString(normalizedDoc.html), "", "text/html", BSONDocument())
+        requestWithContent <- Future(requestWithStatus.copy(contentId = Some(documentId)))
         _ <- Future(recurseLinks(normalizedDoc, requestWithContent, replyTo))
         result <- Future(replyTo ! PageFetchSuccess(requestWithContent))
 
@@ -74,7 +88,7 @@ class PageFetchActor(pipeline: SendReceive) extends Actor with UnboundedStash{
         .makeAbsolute("source[src]", "src")(baseUri)
   }
 
-  def recurseLinks(inputDocument: Document, request: PageFetchRequest, replyTo: ActorRef) :Document = {
+  def recurseLinks(inputDocument: Document, request: PageFetchRequest, replyTo: ActorRef): Document = {
     val links = inputDocument.select("a[href]").iterator()
     if (request.recursionLevel > 0) {
       links.foreach(

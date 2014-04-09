@@ -5,6 +5,8 @@ import crakken.data.repository._
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 import akka.event.LoggingReceive
+import akka.util.ByteString
+import reactivemongo.bson.BSONDocument
 
 object CrakkenRepositoryServiceActor {
   def props(repository: CrakkenRepository): Props = Props(new CrakkenRepositoryServiceActor(repository))
@@ -25,13 +27,34 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
       repository.crawlRequestRepository.getAll() onComplete(tryResponse => replyTo ! CrawlRequestMessages.gotAll(tryResponse))
     }
 
+    case GridFsMessages.create(data: ByteString, filename: String, contentType: String, metadata: BSONDocument)  => {
+      val replyTo = sender
+      repository.gridFsRepository.create(data, filename, contentType, metadata) onComplete(tryResponse => replyTo ! GridFsMessages.created(tryResponse))
+    }
+    case GridFsMessages.getById(id: String)  => {
+      val replyTo = sender
+      repository.gridFsRepository.getById(id) onComplete(tryResponse => {
+        val response = GridFsMessages.gotById(tryResponse)
+        log.debug(s"###Responding with GridFs ${response}")
+        replyTo ! response
+      })
+    }
+
     case PageFetchRequestMessages.create(request) => {
       val replyTo = sender
       repository.pageFetchRequestRepository.create(request) onComplete (tryResponse => replyTo ! PageFetchRequestMessages.created(tryResponse))
     }
     case PageFetchRequestMessages.getById(id: String)  => {
       val replyTo = sender
-      repository.pageFetchRequestRepository.getById(id) onComplete(tryResponse => replyTo ! PageFetchRequestMessages.gotById(tryResponse))
+      repository.pageFetchRequestRepository.getById(id) onComplete(tryResponse => {
+        val response = PageFetchRequestMessages.gotById(tryResponse)
+        log.debug(s"###Responding with PageFetchRequest ${response}")
+        replyTo ! PageFetchRequestMessages.gotById(tryResponse)
+      })
+    }
+    case PageFetchRequestMessages.getByCrId(id: String)  => {
+      val replyTo = sender
+      repository.pageFetchRequestRepository.getByCrId(id) onComplete(tryResponse => replyTo ! PageFetchRequestMessages.gotByCrId(tryResponse))
     }
     case PageFetchRequestMessages.getAll  => {
       val replyTo = sender

@@ -1,0 +1,22 @@
+@(response: List[crakken.data.model.PageFetchRequest], crId: String)
+@import common.layout._
+@import common.tags.pagefetchrequest_tr
+
+@mainlayout(title = "Pages Crawled") {
+    <div class="panel panel-primary">
+        <div class="panel-heading">Pages crawled for Crawl Request @{crId}</div>
+        <div class="panel-body">
+            <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            @for(row <- response) { @pagefetchrequest_tr(row)}
+            </table>
+        </div>
+    </div>
+
+
+}

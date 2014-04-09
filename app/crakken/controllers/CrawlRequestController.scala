@@ -30,7 +30,6 @@ object CrawlRequestController extends Controller with MongoController {
       crawlRequestForm.bindFromRequest.fold(
         errors => BadRequest(views.html.crawlrequest.create(errors)),
         crawlRequest => {
-
           crawlRequestRouter ! crawlRequest
           Ok(views.html.crawlrequest.submit())
         }
@@ -42,6 +41,7 @@ object CrawlRequestController extends Controller with MongoController {
     dbResponse map {
       case CrawlRequestMessages.gotAll(Success(crawlRequests)) => Ok(views.html.crawlrequest.index(crawlRequests))
       case CrawlRequestMessages.gotAll(Failure(ex)) => BadRequest(ex.toString)
+      case response => BadRequest(response.toString)
     }
   }
 

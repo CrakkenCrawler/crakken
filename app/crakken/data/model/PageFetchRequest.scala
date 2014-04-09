@@ -3,7 +3,7 @@ package crakken.data.model
 import crakken.utils.MongoHelper
 import reactivemongo.bson._
 
-case class PageFetchRequest(id: Option[String], crawlRequestId: String, url: String, statusCode: Option[Int], content: Option[String], recursionLevel: Int, includeExternalLinks: Boolean)
+case class PageFetchRequest(id: Option[String], crawlRequestId: String, url: String, statusCode: Option[Int], contentId: Option[String], recursionLevel: Int, includeExternalLinks: Boolean)
 
 object PageFetchRequest {
   implicit object PageFetchRequestBSONWriter extends BSONDocumentWriter[PageFetchRequest] {
@@ -13,7 +13,7 @@ object PageFetchRequest {
         "crawlRequestId" -> BSONObjectID.parse(request.crawlRequestId).get,
         "statusCode" -> request.statusCode,
         "url" -> request.url,
-        "content" -> request.content,
+        "contentId" -> MongoHelper.parseIdIfSome(request.contentId),
         "recursionLevel" -> request.recursionLevel,
         "includeExternalLinks" -> request.includeExternalLinks
       )
@@ -27,7 +27,7 @@ object PageFetchRequest {
         crawlRequestId = doc.getAs[BSONObjectID]("crawlRequestId").get.stringify,
         url = doc.getAs[String]("url").get,
         statusCode = doc.getAs[Int]("statusCode"),
-        content = doc.getAs[String]("content"),
+        contentId = MongoHelper.stringifyIfSome(doc.getAs[BSONObjectID]("contentId")),
         recursionLevel = doc.getAs[Int]("recursionLevel").get,
         includeExternalLinks = doc.getAs[Boolean]("includeExternalLinks").get
       )

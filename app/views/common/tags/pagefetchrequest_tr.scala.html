@@ -1,0 +1,7 @@
+@(request: crakken.data.model.PageFetchRequest)
+
+<tr>
+    <td>@request.id</td>
+    <td>@request.statusCode.getOrElse("")</td>
+    <td><a href="@crakken.controllers.routes.PageFetchRequestController.get(request.id.get)">@request.url</a></td>
+</tr>

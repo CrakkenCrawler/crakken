@@ -22,7 +22,7 @@ object SimpleGlobal extends GlobalSettings {
   override def onStart(app: play.api.Application) {
     //no routers to eliminate race conditions
     val crakkenRepositoryServiceRouter = system.actorOf(CrakkenRepositoryServiceActor.props(MockCrakkenRepository), repositoryRouterName)
-    val pageFetchRequestActor = system.actorOf(Props(classOf[PageFetchActor],sendReceive(system,system.dispatcher)), pageFetchRequestRouterName)
+    val pageFetchRequestActor = system.actorOf(PageFetchActor.props(sendReceive(system,system.dispatcher),crakkenRepositoryServiceRouter), pageFetchRequestRouterName)
     system.actorOf(Props(classOf[CrawlRequestActor],pageFetchRequestActor, crakkenRepositoryServiceRouter), crawlRequestRouterName)
   }
 

@@ -24,7 +24,7 @@ object Global extends GlobalSettings{
   override def onStart(app: Application) {
     val repository = MongoCrakkenRepository
     val crakkenRepositoryServiceRouter = system.actorOf(CrakkenRepositoryServiceActor.props(repository).withRouter((FromConfig())), repositoryRouterName)
-    val pageFetchRequestRouter = system.actorOf(Props(classOf[PageFetchActor],sendReceive(system,system.dispatcher)).withRouter(FromConfig()), pageFetchRequestRouterName)
+    val pageFetchRequestRouter = system.actorOf(PageFetchActor.props(sendReceive(system,system.dispatcher), crakkenRepositoryServiceRouter).withRouter(FromConfig()), pageFetchRequestRouterName)
     system.actorOf(Props(classOf[CrawlRequestActor],pageFetchRequestRouter, crakkenRepositoryServiceRouter).withRouter(FromConfig()), crawlRequestRouterName)
   }
 

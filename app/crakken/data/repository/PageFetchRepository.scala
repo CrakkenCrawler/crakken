@@ -5,7 +5,7 @@ import crakken.data.model.PageFetchRequest
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scala.util.{Success, Try}
-import crakken.utils.MongoHelper
+import reactivemongo.api.gridfs.GridFS
 
 trait PageFetchRequestRepositoryComponent {
 
@@ -15,6 +15,7 @@ trait PageFetchRequestRepositoryComponent {
     def create(request: PageFetchRequest) : Future[PageFetchRequest]
     def update(request: PageFetchRequest) : Future[Int]
     def getById(id: String): Future[Option[PageFetchRequest]]
+    def getByCrId(id: String): Future[List[PageFetchRequest]]
     def getAll(): Future[List[PageFetchRequest]]
   }
 
@@ -26,13 +27,19 @@ trait PageFetchRequestRepositoryComponent {
 
     def db = ReactiveMongoPlugin.db
     lazy val collection = db[BSONCollection]("pageFetchRequests")
+    val gridFS = new GridFS(db)
+
+    // let's build an index on our gridfs chunks collection if none
+    gridFS.ensureIndex()
 
     def create(request: PageFetchRequest) = {
       val doc = PageFetchRequestBSONWriter.write(request)
+      //content
       for {
         lastError <- collection.insert(doc)
         response <- Future { PageFetchRequestBSONReader.read(doc) }
         _ <- Future { println(s"Database actor created ${response}")}
+
       } yield response
     }
 
@@ -51,8 +58,12 @@ trait PageFetchRequestRepositoryComponent {
     }
 
     def getById(id: String) =  for {
-      list <- get(BSONDocument("_id" -> id))
+      list <- get(BSONDocument("_id" -> BSONObjectID.parse(id).get))
     } yield list.headOption
+
+    def getByCrId(id: String) =  for {
+      list <- get(BSONDocument("crawlRequestId" -> BSONObjectID.parse(id).get))
+    } yield list
 
     def getAll() =  get(BSONDocument())
 
@@ -66,6 +77,7 @@ trait PageFetchRequestRepositoryComponent {
     def create(request: PageFetchRequest) = ???
     def update(request: PageFetchRequest) = ???
     def getById(id: String) = ???
+    def getByCrId(id: String) = ???
     def getAll() = ???
   }
 }
@@ -74,10 +86,12 @@ object PageFetchRequestMessages {
   case class create(request: PageFetchRequest)
   case class update(request: PageFetchRequest)
   case class getById(id: String)
-  case class getAll()
+  case class getByCrId(id: String)
+  case class getAll(includeContent: Boolean)
 
   case class created(response: Try[PageFetchRequest])
   case class updated(response: Try[Int])
   case class gotById(response: Try[Option[PageFetchRequest]])
+  case class gotByCrId(response: Try[List[PageFetchRequest]])
   case class gotAll(responses: Try[List[PageFetchRequest]])
 }
