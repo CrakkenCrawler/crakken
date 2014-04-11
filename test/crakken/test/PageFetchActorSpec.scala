@@ -24,7 +24,7 @@ class PageFetchActorSpec(_system: ActorSystem) extends TestKit(_system) with Imp
       val pageFetchRequestActor = system.actorOf(Props(classOf[PageFetchActor], FetchMocker(status, content)))
       val pfr = PageFetchRequest(Some("1"), "1", "http://www.google.com", None, None, 1, false)
       pageFetchRequestActor ! pfr
-      expectMsg(PageFetchSuccess(pfr.copy(statusCode = Some(status), content = Some(parsedContent))))
+      expectMsg(PageFetchSuccess(pfr.copy(statusCode = Some(status), contentId = Some(parsedContent))))
     }
 
     //TODO: Write some negative unit tests

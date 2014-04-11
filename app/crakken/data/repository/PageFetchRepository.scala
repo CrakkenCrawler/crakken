@@ -6,26 +6,29 @@ import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scala.util.{Success, Try}
 import reactivemongo.api.gridfs.GridFS
+import play.Logger
 
 trait PageFetchRequestRepositoryComponent {
 
   val pageFetchRequestRepository: PageFetchRequestRepository
 
   trait PageFetchRequestRepository {
-    def create(request: PageFetchRequest) : Future[PageFetchRequest]
-    def update(request: PageFetchRequest) : Future[Int]
+    def create(request: PageFetchRequest)
+    def update(request: PageFetchRequest)
     def getById(id: String): Future[Option[PageFetchRequest]]
     def getByCrId(id: String): Future[List[PageFetchRequest]]
-    def getAll(): Future[List[PageFetchRequest]]
+    def getAll: Future[List[PageFetchRequest]]
   }
 
   class MongoPageFetchRequestRepository extends PageFetchRequestRepository {
+
     import play.modules.reactivemongo.ReactiveMongoPlugin
     import play.api.Play.current
     import ExecutionContext.Implicits.global
     import PageFetchRequest._
 
     def db = ReactiveMongoPlugin.db
+
     lazy val collection = db[BSONCollection]("pageFetchRequests")
     val gridFS = new GridFS(db)
 
@@ -34,13 +37,7 @@ trait PageFetchRequestRepositoryComponent {
 
     def create(request: PageFetchRequest) = {
       val doc = PageFetchRequestBSONWriter.write(request)
-      //content
-      for {
-        lastError <- collection.insert(doc)
-        response <- Future { PageFetchRequestBSONReader.read(doc) }
-        _ <- Future { println(s"Database actor created ${response}")}
-
-      } yield response
+      collection.insert(doc)
     }
 
     def update(request: PageFetchRequest) = {
@@ -49,17 +46,20 @@ trait PageFetchRequestRepositoryComponent {
       val modifier = BSONDocument(doc.stream.filter(
         //filter out the _id field as mongo wont let you change an id once created
         _ match {
-          case Success(("_id",_)) => false
+          case Success(("_id", _)) => false
           case _ => true
         }))
-      for {
-        lastError <- collection.update(BSONDocument("_id" -> id), BSONDocument("$set" -> modifier))
-      } yield lastError.updated
+
+      collection.update(BSONDocument("_id" -> id), BSONDocument("$set" -> modifier))
     }
 
-    def getById(id: String) =  for {
+    def getById(id: String) =
+    for {
+      _ <- Future { Logger.debug(s"Looking for PFR by ${id}")}
       list <- get(BSONDocument("_id" -> BSONObjectID.parse(id).get))
+      _ <- Future { Logger.debug(s"${list.length} records returned") }
     } yield list.headOption
+
 
     def getByCrId(id: String) =  for {
       list <- get(BSONDocument("crawlRequestId" -> BSONObjectID.parse(id).get))
@@ -89,8 +89,6 @@ object PageFetchRequestMessages {
   case class getByCrId(id: String)
   case class getAll(includeContent: Boolean)
 
-  case class created(response: Try[PageFetchRequest])
-  case class updated(response: Try[Int])
   case class gotById(response: Try[Option[PageFetchRequest]])
   case class gotByCrId(response: Try[List[PageFetchRequest]])
   case class gotAll(responses: Try[List[PageFetchRequest]])

@@ -16,7 +16,7 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
   def receive = LoggingReceive {
     case CrawlRequestMessages.create(request)  => {
       val replyTo = sender
-      repository.crawlRequestRepository.create(request) onComplete(tryResponse => replyTo ! CrawlRequestMessages.created(tryResponse))
+      repository.crawlRequestRepository.create(request)
     }
     case CrawlRequestMessages.getById(id: String)  => {
       val replyTo = sender
@@ -38,7 +38,7 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
 
     case PageFetchRequestMessages.create(request) => {
       val replyTo = sender
-      repository.pageFetchRequestRepository.create(request) onComplete (tryResponse => replyTo ! PageFetchRequestMessages.created(tryResponse))
+      repository.pageFetchRequestRepository.create(request)
     }
     case PageFetchRequestMessages.getById(id: String)  => {
       val replyTo = sender
@@ -50,11 +50,11 @@ class CrakkenRepositoryServiceActor(val repository: CrakkenRepository) extends A
     }
     case PageFetchRequestMessages.getAll  => {
       val replyTo = sender
-      repository.pageFetchRequestRepository.getAll() onComplete(tryResponse => replyTo ! PageFetchRequestMessages.gotAll(tryResponse))
+      repository.pageFetchRequestRepository.getAll onComplete(tryResponse => replyTo ! PageFetchRequestMessages.gotAll(tryResponse))
     }
     case PageFetchRequestMessages.update(request) => {
       val replyTo = sender
-      repository.pageFetchRequestRepository.update(request) onComplete(tryResponse => replyTo ! PageFetchRequestMessages.updated(tryResponse))
+      repository.pageFetchRequestRepository.update(request)
     }
 
   }

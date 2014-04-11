@@ -1,7 +1,7 @@
 @(request: crakken.data.model.CrawlRequest)
 
 <tr>
-    <td><a href="@crakken.controllers.routes.PageFetchRequestController.listByCrId(request.id.get)">@request.id</a></td>
+    <td><a href="@crakken.controllers.routes.PageFetchRequestController.listByCrId(request.id)">@request.id</a></td>
     <td>@request.origin</td>
     <td>@request.initialRecursionLevel</td>
     <td>@if(request.includeExternalLinks) {<span class="glyphicon glyphicon-ok"></span>} else {<span class="glyphicon glyphicon-remove"></span>}</td>

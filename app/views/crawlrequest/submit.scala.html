@@ -1,5 +1,6 @@
+@(request: crakken.data.model.CrawlRequest)
 @import common.layout.mainlayout
 
 @mainlayout(title = "Crawl request successfully submitted") {
-    <h1>Thank You!</h1>
+    <h1>Your crawl request <a href="@crakken.controllers.routes.PageFetchRequestController.listByCrId(request.id)">@request.id</a> has been successfully submitted</h1>
 }

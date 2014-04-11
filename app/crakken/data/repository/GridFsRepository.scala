@@ -21,7 +21,7 @@ trait GridFsRepositoryComponent {
 
   trait GridFsRepository {
     def create(data: ByteString, filename: String = "", contentType: String, metadata: BSONDocument) : Future[String]
-    def getById(id: String): Future[Enumerator[Array[Byte]]]
+    def getById(id: String): Future[(Enumerator[Array[Byte]], String)]
   }
 
   class MongoGridFsRepositoryRepository extends GridFsRepository {
@@ -39,7 +39,7 @@ trait GridFsRepositoryComponent {
     // let's build an index on our gridfs chunks collection if none
     gridFS.ensureIndex()
 
-    def create(data: ByteString, filename: String = "", contentType: String = "text/plain", metadata: BSONDocument = BSONDocument()) = {
+    def create(data: ByteString, filename: String = "", contentType: String = "text/html", metadata: BSONDocument = BSONDocument()) = {
       val id = BSONObjectID.generate
       val fileToSave = DefaultFileToSave(filename, Some(contentType), Some(new DateTime().getMillis),metadata, id)
       for {
@@ -48,10 +48,12 @@ trait GridFsRepositoryComponent {
     }
 
     def getById(id: String) =  {
+      println(s"looking up content $id")
+
       for {
         Some(head) <- gridFS.find[BSONDocument, ReadFile[BSONValue]] (BSONDocument("_id" -> BSONObjectID.parse(id).get)).headOption
         content <- Future { gridFS.enumerate(head)}
-      } yield content
+      } yield (content, head.contentType.getOrElse("text/html"))
     }
   }
 
@@ -66,5 +68,5 @@ object GridFsMessages {
   case class getById(id: String)
 
   case class created(id: Try[String])
-  case class gotById(response: Try[Enumerator[Array[Byte]]])
+  case class gotById(response: Try[(Enumerator[Array[Byte]],String)])
 }

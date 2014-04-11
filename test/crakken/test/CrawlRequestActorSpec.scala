@@ -31,7 +31,7 @@ class CrawlRequestActorSpec (_system: ActorSystem) extends TestKit(_system) with
     val crWithId = cr.copy(id = Some("1"))
     val pfr = PageFetchRequest(None, crWithId.id.get, crWithId.origin, None, None, crWithId.initialRecursionLevel, crWithId.includeExternalLinks)
     val pfrWithId = pfr.copy(id = Some("1"))
-    val pfrWithIdAndContent = pfrWithId.copy(content = Some("<html />"), statusCode = Some(200))
+    val pfrWithIdAndContent = pfrWithId.copy(contentId = Some("<html />"), statusCode = Some(200))
 
     "start out in an idle state" in {
       crawlRequestActor ! GetState()
