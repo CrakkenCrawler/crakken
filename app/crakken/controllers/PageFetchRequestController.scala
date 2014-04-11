@@ -29,7 +29,7 @@ object PageFetchRequestController extends Controller with MongoController {
         PageFetchRequestMessages.gotById(Success(Some(pageFetchRequest))) <- repositoryRouter ? PageFetchRequestMessages.getById(id)
         _ <- Future { Logger.logger.debug(s"Successfully got pageFetchRequest with content ID ${pageFetchRequest.contentId}")}
         GridFsMessages.gotById(Success((enumerator,contentType))) <- repositoryRouter ? GridFsMessages.getById(pageFetchRequest.contentId.get)
-      } yield SimpleResult(header = ResponseHeader(pageFetchRequest.statusCode.getOrElse(500), Map[String,String]("Content-Type" -> contentType)), body = enumerator)
+      } yield Ok.chunked(enumerator).as(contentType)
     composedFuture recover {
       case ex: Throwable => {
         Logger.error("Exception thrown", ex);
