@@ -7,7 +7,7 @@ import akka.routing._
 import play.api._
 import play.libs.Akka._
 import spray.client.pipelining._
-
+import play.modules.reactivemongo.ReactiveMongoPlugin
 
 object Global extends GlobalSettings{
   val actorPrefix = "/user/"

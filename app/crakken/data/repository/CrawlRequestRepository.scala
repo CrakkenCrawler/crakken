@@ -13,7 +13,7 @@ trait CrawlRequestRepositoryComponent {
   val crawlRequestRepository: CrawlRequestRepository
 
   trait CrawlRequestRepository {
-    def create(request: CrawlRequest) : Future[CrawlRequest]
+    def create(request: CrawlRequest) : Unit
     def getById(id: String): Future[Option[CrawlRequest]]
     def getAll(): Future[List[CrawlRequest]]
   }
@@ -27,11 +27,7 @@ trait CrawlRequestRepositoryComponent {
     lazy val collection = db[BSONCollection]("crawlRequests")
 
     def create(request: CrawlRequest) = {
-      val doc = CrawlRequestBSONWriter.write(request)
-      for {
-        lastError <- collection.insert(doc)
-        response <- Future {CrawlRequestBSONReader.read(doc)}
-      } yield response
+      collection.insert(request)
     }
 
     def getById(id: String) =  for {
@@ -48,7 +44,7 @@ trait CrawlRequestRepositoryComponent {
   }
 
   class MockCrawlRequestRepository extends CrawlRequestRepository {
-    def create(request: CrawlRequest) = Future { request.copy(id = Some("123abc"))}
+    def create(request: CrawlRequest) = {}
     def getById(id: String) = Future {
       id match {
         case "123abc" => Some(CrawlRequest(Some("123abc"), "http://www.google.com", 1, false))

@@ -16,6 +16,7 @@ import crakken.data.model.PageFetchRequest
 import crakken.data.model.CrawlRequest
 import crakken.actor.Testing.Initializing
 import scala.util.Failure
+import reactivemongo.bson.BSONObjectID
 
 class CrawlRequestActor(val pageFetchActor: ActorRef, val repositoryActor: ActorRef) extends Actor with UnboundedStash with ActorLogging {
   import context._
@@ -30,85 +31,44 @@ class CrawlRequestActor(val pageFetchActor: ActorRef, val repositoryActor: Actor
 
   def idle: Receive = LoggingReceive {
     case (request: CrawlRequest) => {
-      log.debug(s"Request received.  Becoming initializing.")
+      log.debug(s"Request received.  Becoming processing.")
       context.setReceiveTimeout(10.seconds)
-      become(initializing)
-      unstashAll
+      become(processing(request, List.empty))
+      unstashAll()
       repositoryActor ! CrawlRequestMessages.create(request)
+      self ! PageFetchRequest(None, request.id , request.origin, None, None, request.initialRecursionLevel, request.includeExternalLinks)
     }
 
     case GetState() => sender ! Idle()
-  }
-  
-  def initializing: Receive = LoggingReceive {
-    case CrawlRequestMessages.created(response) => {
-      response match {
-        case Success(cr) => {
-            log.debug(s"Initialization complete.  Becoming processing. ${cr}")
-            become(processing(cr, List.empty))
-            unstashAll
-            context.setReceiveTimeout(10.seconds)
-            self ! PageFetchRequest(None, cr.id.get, cr.origin, None, None, cr.initialRecursionLevel, cr.includeExternalLinks)
-        }
-        case Failure(ex) => {
-          log.debug(s"Initialization failed.  Becoming idle.")
-          context.setReceiveTimeout(Duration.Undefined)
-          become(idle)
-          unstashAll
-        }
-      }
-    }
-    case ReceiveTimeout => {
-      log.debug(s"Initialization timed out.  Becoming idle.")
-      context.setReceiveTimeout(Duration.Undefined)
-      become(idle)
-      unstashAll()
-    }
+    case _ => stash()
 
-    case GetState() => sender ! Initializing()
-    case _ => stash
   }
 
   def processing(crawlRequest: CrawlRequest, history: List[String]): Receive = LoggingReceive {
 
     //PageFetchRequest Messages
     case PageFetchSuccess(request) => {
+      log.info(s"Page fetch for ${request.url} completed with code ${request.statusCode.getOrElse("unknown")}.")
       repositoryActor ! PageFetchRequestMessages.update(request)
     }
     case PageFetchFailure(request, ex) => {
-      log.debug("Page fetch failure received.")
+      log.error(ex, "Page fetch failure received.")
     }
     case (request: PageFetchRequest) => {
-      implicit val timeout = Timeout(5.seconds)
-      log.debug("Child page fetch request received.")
+      log.info(s"Page fetch for ${request.url} received.")
       if (!history.contains(request.url)) {
         become(processing(crawlRequest, history :+ request.url))
         repositoryActor ! PageFetchRequestMessages.create(request)
+        pageFetchActor ! request
       }
     }
-
-    //Repository Responses
-    case PageFetchRequestMessages.created(Success(pageFetchRequest)) => {
-      pageFetchActor ! pageFetchRequest
-    }
-    case PageFetchRequestMessages.created(Failure(ex)) => {
-      log.error(ex,"PageFetchRequestMessages.create failed" )
-    }
-
-    case PageFetchRequestMessages.updated(Success(pageFetchRequests)) => {
-
-    }
-    case PageFetchRequestMessages.updated(Failure(ex)) => {
-      log.error(ex,"PageFetchRequestMessages.update failed" )
-    }
-
 
     case GetState() => sender ! Processing()
     case ReceiveTimeout => {
       log.debug("No activity received for 10 seconds.  Becoming idle.")
       context.setReceiveTimeout(Duration.Undefined)
       become(idle)
-      unstashAll
+      unstashAll()
     }
     case _ => stash()
   }

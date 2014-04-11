@@ -23,6 +23,7 @@ libraryDependencies ++= Seq(
   "io.spray"              %  "spray-caching"              % sprayVersion,
   "org.jsoup"             %  "jsoup"                      % "1.7.3",
   "org.reactivemongo"     %% "play2-reactivemongo"        % "0.10.2",
+  "org.reactivemongo"     %% "play2-reactivemongo"        % "0.10.2",
   jdbc,
   "com.typesafe.akka"     %% "akka-testkit"               % akkaVersion       % "test",
   "org.scalatest"         %% "scalatest"                  % "2.1.1"           % "test",

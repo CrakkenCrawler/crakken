@@ -31,7 +31,7 @@ object CrawlRequestController extends Controller with MongoController {
         errors => BadRequest(views.html.crawlrequest.create(errors)),
         crawlRequest => {
           crawlRequestRouter ! crawlRequest
-          Ok(views.html.crawlrequest.submit())
+          Ok(views.html.crawlrequest.submit(crawlRequest))
         }
       )
   }
@@ -54,6 +54,6 @@ object CrawlRequestController extends Controller with MongoController {
         "origin" -> text,
         "initialRecursionLevel" -> number,
         "includeExternalLinks" -> boolean
-      ) (CrawlRequest.apply) (CrawlRequest.unapply)
+      ) (CrawlRequest.apply) (request => Some((Some(request.id), request.origin, request.initialRecursionLevel, request.includeExternalLinks)))
     )
 }
