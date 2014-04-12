@@ -52,7 +52,7 @@ trait GridFsRepositoryComponent {
 
       for {
         Some(head) <- gridFS.find[BSONDocument, ReadFile[BSONValue]] (BSONDocument("_id" -> BSONObjectID.parse(id).get)).headOption
-        content <- Future { gridFS.enumerate(head)}
+        content <- Future { gridFS.enumerate(head) }
       } yield (content, head.contentType.getOrElse("text/html"))
     }
   }

@@ -20,42 +20,56 @@ import scala.util.Success
 import ExecutionContext.Implicits.global
 
 import scala.language.postfixOps
+import crakken.utils.HttpHelper
+import java.io.ByteArrayInputStream
 
 object PageFetchActor {
   def props(pipeline: SendReceive, repositoryActor: ActorRef) = Props { new PageFetchActor(pipeline, repositoryActor) }
 }
 class PageFetchActor(pipeline: SendReceive, repositoryActor: ActorRef) extends Actor with ActorLogging with UnboundedStash{
 
-  implicit val timeout = Timeout(5 seconds)  // for ask pattern
+  implicit val timeout = Timeout(10 seconds)  // for ask pattern
 
   def receive = LoggingReceive {
     case request: PageFetchRequest  => {
       val replyTo = sender
-      val composedFuture = for {
+      for {
+        //Fetch and store the original content
         response <- pipeline { Get(Uri(request.url)) }
         _ <- Future { followRedirect(response, request, replyTo) }
-        requestWithStatus <- Future { request.copy(statusCode = Some(response.status.intValue))}
-        parsedDoc <- Future { Jsoup.parse(response.entity.asString) }
-        normalizedDoc <- Future { normalizeLinks(parsedDoc, Uri(requestWithStatus.url)) }
-        GridFsMessages.created(Success(documentId)) <-
-                  repositoryActor ? GridFsMessages.create(ByteString(normalizedDoc.html),
-                                                          request.url,
-                                                          getContentType(response),
-                                                          BSONDocument())
-        requestWithContent <- Future { requestWithStatus.copy(contentId = Some(documentId))}
-        _ <- Future { recurseLinks(normalizedDoc, requestWithContent, replyTo) }
-        result <- Future { replyTo ! PageFetchSuccess(requestWithContent) }
-      } yield result
+        contentTypeHeader <- Future { getContentTypeHeader(response) }
+        encoding <- Future { getEncoding(contentTypeHeader) }
+        contentType <- Future { getContentType(contentTypeHeader) }
+        GridFsMessages.created(Success(documentId)) <- repositoryActor ? GridFsMessages.create(response.entity.data.toByteString,
+                                                                                                request.url,
+                                                                                                contentTypeHeader,
+                                                                                                BSONDocument())
+        completedRequest <- Future { request.copy(contentId = Some(documentId), statusCode = Some(response.status.intValue))}
+        _ <- Future { replyTo ! PageFetchSuccess(completedRequest) }
 
-      composedFuture recoverWith {
-        case (ex: Throwable) => Future { replyTo ! PageFetchFailure(request, ex) }
-      }
+        //Skim the content for new links
+        parsedDocument <- Future { Jsoup.parse(new ByteArrayInputStream(response.entity.data.toByteArray), encoding, request.url) }  if contentType == "text/html"
+        normalizedDocument <- Future { parsedDocument.makeAbsolute("a[href]", "href")(request.url) }
+        linkList <- Future {  normalizedDocument.select("a[href]").iterator().map(element => element.attr("href")).toList }
+        result <- Future { recurseLinks(linkList, completedRequest, replyTo) }
+      } yield result
     }
   }
 
-  def getContentType(response: HttpResponse) : String = {
-    response.headers.filter(header => header.name.toLowerCase == "content-type").map(header => header.value).headOption.getOrElse("text/html")
+  def getContentTypeHeader(response: HttpResponse) = {
+    response.headers.filter(header => header.name.toLowerCase == "content-type").map(header => header.value).headOption.getOrElse("text/html; charset=UTF-8")
   }
+
+  def getEncoding(contentTypeHeader: String) : String = {
+    val tokens = contentTypeHeader.split(';').toList
+    val params = tokens.map(token => (token.split(';').head, token.split(';').tail.headOption))
+    val encodings = params.filter(param => param._1.toLowerCase == "charset").map(charset => charset._2).filter(encoding => encoding.nonEmpty).map(encoding => encoding.get)
+    encodings.headOption.getOrElse("UTF-8")
+  }
+
+  def getContentType(contentTypeHeader: String) : String = {
+    contentTypeHeader.split(';').toList.headOption.getOrElse("text/html")
+ }
 
   def followRedirect(response: HttpResponse, request: PageFetchRequest, replyTo: ActorRef) = {
     log.info(s"${response.status.intValue} - ${request.recursionLevel} - ${request.url}")
@@ -67,25 +81,11 @@ class PageFetchActor(pipeline: SendReceive, repositoryActor: ActorRef) extends A
     }
   }
 
-  def normalizeLinks(inputDocument: Document, baseUri: Uri): Document = {
-      inputDocument
-        .makeAbsolute("a[href]", "href")(baseUri)
-        .makeAbsolute("img[src]", "src")(baseUri)
-        .makeAbsolute("img[href]", "href")(baseUri)
-        .makeAbsolute("script[src]", "src")(baseUri)
-        .makeAbsolute("meta[itemprop=image]", "content")(baseUri)
-        .makeAbsolute("link[href]", "href")(baseUri)
-        .makeAbsolute("form[action]", "action")(baseUri)
-        .makeAbsolute("source[src]", "src")(baseUri)
-  }
-
-  def recurseLinks(inputDocument: Document, request: PageFetchRequest, replyTo: ActorRef) = {
-    val links = inputDocument.select("a[href]").iterator()
+  def recurseLinks(links: List[String], request: PageFetchRequest, replyTo: ActorRef) = {
     if (request.recursionLevel > 0) {
       links.foreach(
-        link => {
+        toLink => {
           val fromLink = request.url
-          val toLink = link.attr("href")
           val fromHost = Uri(fromLink).authority
           val toHost = Uri(toLink).authority
 

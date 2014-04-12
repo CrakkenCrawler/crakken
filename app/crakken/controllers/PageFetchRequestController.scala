@@ -25,9 +25,7 @@ object PageFetchRequestController extends Controller with MongoController {
 
   def get(id: String) = Action.async { request =>
     val composedFuture = for {
-      _ <- Future { Logger.logger.debug(s"Looking for pageFetchRequest with ID ${id}")}
         PageFetchRequestMessages.gotById(Success(Some(pageFetchRequest))) <- repositoryRouter ? PageFetchRequestMessages.getById(id)
-        _ <- Future { Logger.logger.debug(s"Successfully got pageFetchRequest with content ID ${pageFetchRequest.contentId}")}
         GridFsMessages.gotById(Success((enumerator,contentType))) <- repositoryRouter ? GridFsMessages.getById(pageFetchRequest.contentId.get)
       } yield Ok.chunked(enumerator).as(contentType)
     composedFuture recover {
@@ -36,7 +34,6 @@ object PageFetchRequestController extends Controller with MongoController {
         BadRequest(ex.toString)
       }
     }
-
   }
 
 
