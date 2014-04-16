@@ -55,9 +55,7 @@ trait PageFetchRequestRepositoryComponent {
 
     def getById(id: String) =
     for {
-      _ <- Future { Logger.debug(s"Looking for PFR by ${id}")}
       list <- get(BSONDocument("_id" -> BSONObjectID.parse(id).get))
-      _ <- Future { Logger.debug(s"${list.length} records returned") }
     } yield list.headOption
 
 

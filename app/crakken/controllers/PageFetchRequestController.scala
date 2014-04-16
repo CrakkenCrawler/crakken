@@ -5,7 +5,6 @@ import play.libs.Akka
 import crakken.Global
 import play.api.mvc._
 import play.api._
-import scala.util.{Failure, Success}
 import crakken.data.repository.{GridFsMessages, PageFetchRequestMessages}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -16,7 +15,10 @@ import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
 import scala.Some
-import views.html.defaultpages.badRequest
+import play.api.libs.iteratee._
+import org.jsoup.nodes.Document
+import org.jsoup.Jsoup
+import crakken.utils.PageFetchHelper
 
 object PageFetchRequestController extends Controller with MongoController {
   implicit val timeout = Timeout(10 seconds)
@@ -25,18 +27,22 @@ object PageFetchRequestController extends Controller with MongoController {
 
   def get(id: String) = Action.async { request =>
     val composedFuture = for {
-      _ <- Future { Logger.logger.debug(s"Looking for pageFetchRequest with ID ${id}")}
         PageFetchRequestMessages.gotById(Success(Some(pageFetchRequest))) <- repositoryRouter ? PageFetchRequestMessages.getById(id)
-        _ <- Future { Logger.logger.debug(s"Successfully got pageFetchRequest with content ID ${pageFetchRequest.contentId}")}
-        GridFsMessages.gotById(Success((enumerator,contentType))) <- repositoryRouter ? GridFsMessages.getById(pageFetchRequest.contentId.get)
-      } yield SimpleResult(header = ResponseHeader(pageFetchRequest.statusCode.getOrElse(500), Map[String,String]("Content-Type" -> contentType)), body = enumerator)
+        GridFsMessages.gotById(Success((rawEnumerator,contentTypeHeader))) <- repositoryRouter ? GridFsMessages.getById(pageFetchRequest.contentId.get)
+        maybeNormalizedEnumerator <- Future {
+          if (PageFetchHelper.getContentType(contentTypeHeader).toLowerCase() == "text/html") {
+            rawEnumerator &> normalizeRefs(PageFetchHelper.getEncoding(contentTypeHeader), pageFetchRequest.url)
+          } else {
+            rawEnumerator
+          }
+        }
+      } yield Ok.chunked(maybeNormalizedEnumerator).as(contentTypeHeader)
     composedFuture recover {
       case ex: Throwable => {
         Logger.error("Exception thrown", ex);
         BadRequest(ex.toString)
       }
     }
-
   }
 
 
@@ -48,4 +54,20 @@ object PageFetchRequestController extends Controller with MongoController {
     }
   }
 
+  def encodeToString(charset: String) : Enumeratee[Array[Byte], String] = Enumeratee.map( bytes => new String(bytes, charset))
+
+  def decodeToBytes(charset: String) : Enumeratee[String, Array[Byte]] =  Enumeratee.map(str => str.getBytes(charset))
+
+  def toJSoup(baseUri: String) : Enumeratee[String, Document] = Enumeratee.grouped(Iteratee.consume[String]()) ><> Enumeratee.map(str => Jsoup.parse(str, baseUri))
+  val fromJSoup: Enumeratee[Document, String] = Enumeratee.map(doc => doc.html)
+  val normalize: Enumeratee[Document, Document] = Enumeratee.map(doc => PageFetchHelper.normalizeDocument(doc))
+
+  def tee[T]: Enumeratee[T, T] = Enumeratee.map(value => {Logger.info(s"TEED: ${value.toString}"); value} )
+
+  def normalizeRefs(charset: String, baseUri: String) : Enumeratee[Array[Byte], Array[Byte]] =
+    encodeToString(charset) ><>
+    toJSoup(baseUri) ><>
+    normalize ><>
+    fromJSoup ><>
+    decodeToBytes(charset)
 }

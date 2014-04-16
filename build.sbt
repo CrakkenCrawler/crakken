@@ -34,8 +34,6 @@ seq(StandardProject.newSettings: _*)
 
 scalacOptions += "-feature"
 
-initialCommands in console := "import scalaz._, Scalaz._"
-
 buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo

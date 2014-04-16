@@ -31,8 +31,6 @@ trait GridFsRepositoryComponent {
     import play.modules.reactivemongo.ReactiveMongoPlugin
     import reactivemongo.api.gridfs.Implicits.DefaultReadFileReader
 
-    val digest = MessageDigest.getInstance("MD5")
-
     def db = ReactiveMongoPlugin.db
     val gridFS = new GridFS(db,"pageFetchRequests")
 
@@ -52,7 +50,7 @@ trait GridFsRepositoryComponent {
 
       for {
         Some(head) <- gridFS.find[BSONDocument, ReadFile[BSONValue]] (BSONDocument("_id" -> BSONObjectID.parse(id).get)).headOption
-        content <- Future { gridFS.enumerate(head)}
+        content <- Future { gridFS.enumerate(head) }
       } yield (content, head.contentType.getOrElse("text/html"))
     }
   }
