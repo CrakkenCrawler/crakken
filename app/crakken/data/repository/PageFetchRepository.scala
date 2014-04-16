@@ -55,7 +55,6 @@ trait PageFetchRequestRepositoryComponent {
 
     def getById(id: String) =
     for {
-      //TODO: Implement On-The-Fly Document normalization here
       list <- get(BSONDocument("_id" -> BSONObjectID.parse(id).get))
     } yield list.headOption
 

@@ -31,8 +31,6 @@ trait GridFsRepositoryComponent {
     import play.modules.reactivemongo.ReactiveMongoPlugin
     import reactivemongo.api.gridfs.Implicits.DefaultReadFileReader
 
-    val digest = MessageDigest.getInstance("MD5")
-
     def db = ReactiveMongoPlugin.db
     val gridFS = new GridFS(db,"pageFetchRequests")
 

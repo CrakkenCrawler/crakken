@@ -7,9 +7,10 @@ import scala.language.implicitConversions
 
 object JSoupExtensions {
   class NormalizableJSoupDocument(document: Document) {
-    def makeAbsolute(selector: String, attribute: String)(baseUri: Uri): Document = {
+    def makeAbsolute(selector: String, attribute: String): Document = {
       val outputDocument = document.clone()
-      outputDocument.select(selector).iterator.foreach(link => link.attr(attribute, Uri.parseAndResolve(link.attr(attribute), baseUri).toString()))
+      document.location()
+      outputDocument.select(selector).iterator.foreach(link => link.attr(attribute, link.absUrl(attribute)))
       outputDocument
     }
   }
