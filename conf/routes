@@ -10,7 +10,7 @@ POST        /crawlrequest/create                    crakken.controllers.CrawlReq
 GET         /crawlrequest/list                      crakken.controllers.CrawlRequestController.list
 GET         /crawlrequest/:id                       crakken.controllers.CrawlRequestController.get(id)
 GET         /pagefetchrequest/listbycrid/:id        crakken.controllers.PageFetchRequestController.listByCrId(id:String)
-GET         /pagefetchrequest/:id/content           crakken.controllers.PageFetchRequestController.getContent(id:String)
+GET         /pagefetchrequest/:id                   crakken.controllers.PageFetchRequestController.getContent(id:String)
 #GET     /ws                         crakken.controllers.Application.ws
 
 # Map static resources from the /public folder to the /assets URL path
