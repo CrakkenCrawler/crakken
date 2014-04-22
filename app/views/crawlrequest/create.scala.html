@@ -2,19 +2,32 @@
 
 @import common.layout._
 @import crakken.controllers._
-@import helper._
+@import helper.twitterBootstrap._
 
 @scripts = {
     <script type='text/javascript' src='@controllers.routes.Assets.at("javascripts/index.min.js")'></script>
 }
 
 @mainlayout(title = "Release the Crakken!", pagescripts = scripts) {
-    @form(action = routes.CrawlRequestController.submit) {
-        @inputText(crawlRequestForm("origin"), '_label -> "Site to crawl: ")
-        @inputText(crawlRequestForm("initialRecursionLevel"), '_label -> "Crawl Depth: ")
-        @checkbox(crawlRequestForm("includeExternalLinks"), '_label -> "Include external sites: ")
-        <input name="id" type="hidden" value="" />
-        <input class="btn btn-primary" type="submit" />
+    @helper.form(action = routes.CrawlRequestController.submit, 'class -> "form-horizontal") {
+        <fieldset>
+            <legend>New Crawl Request</legend>
+            @helper.inputText(crawlRequestForm("origin"),
+                '_label -> "Site to crawl: ",
+                '_showConstraints -> false,
+                'class -> "form-control",
+                'placeholder -> "Origin")
+            @helper.inputText(crawlRequestForm("initialRecursionLevel"),
+                '_label -> "Crawl Depth: ",
+                '_showConstraints -> false,
+                'class -> "form-control col-lg-2",
+                'placeholder -> "Crawl Depth")
+            @helper.checkbox(crawlRequestForm("includeExternalLinks"),
+                '_label -> "Include external sites: ",
+                '_showConstraints -> false )
+            <input name="id" type="hidden" value="" />
+            <input class="btn btn-primary" type="submit" />
+        </fieldset>
     }
 }
 

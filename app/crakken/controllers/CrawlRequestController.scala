@@ -71,7 +71,7 @@ object CrawlRequestController extends Controller with MongoController {
       mapping(
         "id" -> optional(text),
         "origin" -> text,
-        "initialRecursionLevel" -> number,
+        "initialRecursionLevel" -> number(min = 1, max = 10),
         "includeExternalLinks" -> boolean
       ) (CrawlRequest.apply) (request => Some((Some(request.id), request.origin, request.initialRecursionLevel, request.includeExternalLinks)))
     )

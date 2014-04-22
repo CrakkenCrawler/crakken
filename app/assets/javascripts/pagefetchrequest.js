@@ -12,7 +12,13 @@ $(function() {
             {
                 "mData": "url",
                 "mRender": function(data,type,full) {
-                    return "<a href='/pagefetchrequest/" + full.id + "'>" + data + "</a>";
+                    var retval;
+                    if (full.statusCode == 200) {
+                        retval = "<a href='/pagefetchrequest/" + full.id + "'>" + data + "</a>"
+                    } else {
+                        retval = data;
+                    }
+                    return retval;
                 }
             },
             {
