@@ -2,6 +2,8 @@ package crakken.data.model
 
 import crakken.utils.MongoHelper
 import reactivemongo.bson._
+import play.api.libs.json.{JsPath, Writes}
+import play.api.libs.functional.syntax._
 
 case class PageFetchRequest(
                         id: String = BSONObjectID.generate.stringify,
@@ -49,4 +51,14 @@ object PageFetchRequest {
       )
     }
   }
+
+  implicit val pageFetchRequestWrites: Writes[PageFetchRequest] = (
+    (JsPath \ "id").write[String] and
+      (JsPath \ "crawlRequestId").write[String] and
+      (JsPath \ "url").write[String] and
+      (JsPath \ "statusCode").write[Option[Int]] and
+      (JsPath \ "contentId").write[Option[String]] and
+      (JsPath \ "recursionLevel").write[Int] and
+      (JsPath \ "includeExternalLinks").write[Boolean]
+    )(unlift(PageFetchRequest.unapply))
 }

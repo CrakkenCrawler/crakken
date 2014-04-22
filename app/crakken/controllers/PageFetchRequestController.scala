@@ -1,7 +1,6 @@
 package crakken.controllers
 
 import play.modules.reactivemongo.MongoController
-import play.libs.Akka
 import crakken.Global
 import play.api.mvc._
 import play.api._
@@ -16,16 +15,18 @@ import scala.util.Success
 import scala.util.Failure
 import scala.Some
 import play.api.libs.iteratee._
+import play.api.libs.concurrent.Akka
+import play.api.Play.current
 import org.jsoup.nodes.Document
 import org.jsoup.Jsoup
-import crakken.utils.PageFetchHelper
+import crakken.utils.{DataTablesHelper, PageFetchHelper}
 
 object PageFetchRequestController extends Controller with MongoController {
   implicit val timeout = Timeout(10 seconds)
 
   val repositoryRouter = Akka.system.actorSelection(Global.repositoryRouterPathName)
 
-  def get(id: String) = Action.async { request =>
+  def getContent(id: String) = Action.async { request =>
     val composedFuture = for {
         PageFetchRequestMessages.gotById(Success(Some(pageFetchRequest))) <- repositoryRouter ? PageFetchRequestMessages.getById(id)
         GridFsMessages.gotById(Success((rawEnumerator,contentTypeHeader))) <- repositoryRouter ? GridFsMessages.getById(pageFetchRequest.contentId.get)
@@ -49,7 +50,7 @@ object PageFetchRequestController extends Controller with MongoController {
   def listByCrId(id: String) = Action.async { request =>
     val dbResponse = repositoryRouter ? PageFetchRequestMessages.getByCrId(id)
     dbResponse map {
-      case PageFetchRequestMessages.gotByCrId(Success(pageFetchRequests)) => Ok(views.html.pagefetchrequest.getbycrid(pageFetchRequests,id))
+      case PageFetchRequestMessages.gotByCrId(Success(pageFetchRequests)) => Ok(DataTablesHelper.wrapJson(pageFetchRequests))
       case PageFetchRequestMessages.gotByCrId(Failure(ex)) => BadRequest(ex.toString)
     }
   }

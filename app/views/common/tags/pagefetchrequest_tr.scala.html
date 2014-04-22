@@ -5,7 +5,7 @@
     <td>@request.statusCode.getOrElse("Pending")</td>
     <td>
         @if(request.statusCode.nonEmpty) {
-            <a href="@crakken.controllers.routes.PageFetchRequestController.get(request.id)">@request.url</a>
+            <a href="@crakken.controllers.routes.PageFetchRequestController.getContent(request.id)">@request.url</a>
         } else {
             <span>@request.url</span>
         }

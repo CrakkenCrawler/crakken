@@ -1,6 +1,8 @@
 package crakken.data.model
 
 import reactivemongo.bson._
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class CrawlRequest(id: String = BSONObjectID.generate.stringify, origin: String, initialRecursionLevel: Int, includeExternalLinks: Boolean )
 
@@ -29,4 +31,11 @@ object CrawlRequest {
       )
     }
   }
+
+  implicit val crawlRequestWrites: Writes[CrawlRequest] = (
+      (JsPath \ "id").write[String] and
+      (JsPath \ "origin").write[String] and
+        (JsPath \ "initialRecursionLevel").write[Int] and
+        (JsPath \ "includeExternals").write[Boolean]
+    )(unlift(CrawlRequest.unapply))
 }

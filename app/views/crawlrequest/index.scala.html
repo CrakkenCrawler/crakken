@@ -1,22 +1,25 @@
 @(response: List[crakken.data.model.CrawlRequest])
 @import common.layout._
-@import common.tags.crawlrequest_tr
-
-@mainlayout(title = "Crawl Requests") {
+@stylesheets = {
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.at("stylesheets/dataTables.bootstrap.min.css")'>
+}
+@scripts = {
+    <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10-dev/js/jquery.dataTables.min.js"></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/dataTables.bootstrap.min.js")'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/crawlrequest.min.js")'></script>
+}
+@mainlayout(title = "Crawl Requests", pagescripts = scripts, pagestylesheets = stylesheets) {
     <div class="page-header">
         <h1>Crawl Requests</h1>
     </div>
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover" id="crawlrequests">
         <thead>
             <tr>
-                <th class="col-md-3">ID</th>
-                <th class="col-md-7">Origin</th>
-                <th class="col-md-1">Crawl Depth</th>
-                <th class="col-md-1">Include External Links</th>
+                <td>ID</td>
+                <td>Origin</td>
+                <td>Crawl Depth</td>
+                <td>Include Externals</td>
             </tr>
         </thead>
-        <tbody>
-            @for(row <- response) { @crawlrequest_tr(row)}
-        </tbody>
     </table>
 }

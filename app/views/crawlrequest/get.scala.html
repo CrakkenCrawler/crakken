@@ -1,0 +1,31 @@
+@(crId: String)
+@import common.layout._
+
+@stylesheets = {
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.at("stylesheets/dataTables.bootstrap.min.css")'>
+}
+@scripts = {
+    <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10-dev/js/jquery.dataTables.min.js"></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/dataTables.bootstrap.min.js")'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/pagefetchrequest.js")'></script>
+}
+
+
+@mainlayout(title = "Pages Crawled", pagescripts = scripts, pagestylesheets = stylesheets) {
+    <script>
+        var crId = "@crId";
+    </script>
+    <div class="page-header">
+        <h1>Page Fetches</h1>
+    </div>
+    <h2 class="panel-heading">Pages crawled for Crawl Request @crId</h2>
+    <table class="table" id="pagefetchrequests">
+        <thead>
+            <tr>
+                <th class="col-md-3">ID</th>
+                <th class="col-md-1">Status</th>
+                <th class="col-md-8">Crawled URL</th>
+            </tr>
+        </thead>
+    </table>
+}

@@ -7,6 +7,7 @@ import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scala.util.{Success, Try}
 import reactivemongo.api.gridfs.GridFS
 import play.Logger
+import reactivemongo.api.QueryOpts
 
 trait PageFetchRequestRepositoryComponent {
 
@@ -65,8 +66,8 @@ trait PageFetchRequestRepositoryComponent {
 
     def getAll() =  get(BSONDocument())
 
-    def get(q: BSONDocument) = {
-      val found = collection.find(q)
+    def get(q: BSONDocument = BSONDocument(), sort: BSONDocument = BSONDocument(), queryOpts: QueryOpts = QueryOpts()) = {
+      val found = collection.find(q).sort(sort).options(queryOpts)
       found.cursor[PageFetchRequest].collect[List]()
     }
   }

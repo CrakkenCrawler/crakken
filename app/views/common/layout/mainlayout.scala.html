@@ -1,4 +1,4 @@
-@(title: String, pagescripts: Html = Html(""))(content: Html)
+@(title: String, pagescripts: Html = Html(""), pagestylesheets: Html = Html(""))(content: Html)
 
 @import common.tiles.{navbar,footer}
 
@@ -6,13 +6,14 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>@title</title>
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css" />
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
+        @pagestylesheets
         @*<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">*@
     </head>
     <body>
@@ -24,7 +25,7 @@
         @footer()
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-        <script type='text/javascript' src='@routes.Assets.at("javascripts/index.min.js")'></script>
+        <script type='text/javascript' src='@routes.Assets.at("javascripts/main.min.js")'></script>
         @pagescripts
     </body>
 </html>

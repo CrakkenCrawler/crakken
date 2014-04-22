@@ -2,15 +2,16 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /                                   crakken.controllers.ApplicationController.index
-GET         /login                              crakken.controllers.ApplicationController.login
-GET         /crawlrequest                       crakken.controllers.CrawlRequestController.index
-GET         /crawlrequest/get/:id               crakken.controllers.CrawlRequestController.get(id: String)
-GET         /crawlrequest/create                crakken.controllers.CrawlRequestController.create
-POST        /crawlrequest/create                crakken.controllers.CrawlRequestController.submit
-GET         /pagefetchrequest/listbycrid/:id    crakken.controllers.PageFetchRequestController.listByCrId(id:String)
-GET         /pagefetchrequest/get/:id           crakken.controllers.PageFetchRequestController.get(id:String)
+GET         /                                       crakken.controllers.ApplicationController.index
+GET         /login                                  crakken.controllers.ApplicationController.login
+GET         /crawlrequest                           crakken.controllers.CrawlRequestController.index
+GET         /crawlrequest/create                    crakken.controllers.CrawlRequestController.create
+POST        /crawlrequest/create                    crakken.controllers.CrawlRequestController.submit
+GET         /crawlrequest/list                      crakken.controllers.CrawlRequestController.list
+GET         /crawlrequest/:id                       crakken.controllers.CrawlRequestController.get(id)
+GET         /pagefetchrequest/listbycrid/:id        crakken.controllers.PageFetchRequestController.listByCrId(id:String)
+GET         /pagefetchrequest/:id/content           crakken.controllers.PageFetchRequestController.getContent(id:String)
 #GET     /ws                         crakken.controllers.Application.ws
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                       controllers.Assets.at(path="/public", file)
+GET         /assets/*file                           controllers.Assets.at(path="/public", file)

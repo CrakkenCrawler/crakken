@@ -4,11 +4,11 @@
 @import crakken.controllers._
 @import helper._
 
-@pagescripts = {
+@scripts = {
     <script type='text/javascript' src='@controllers.routes.Assets.at("javascripts/index.min.js")'></script>
 }
 
-@mainlayout(title = "Release the Crakken!", pagescripts) {
+@mainlayout(title = "Release the Crakken!", pagescripts = scripts) {
     @form(action = routes.CrawlRequestController.submit) {
         @inputText(crawlRequestForm("origin"), '_label -> "Site to crawl: ")
         @inputText(crawlRequestForm("initialRecursionLevel"), '_label -> "Crawl Depth: ")
