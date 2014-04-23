@@ -15,7 +15,6 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
-import play.api.libs.json._
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import crakken.utils.DataTablesHelper
@@ -23,6 +22,7 @@ import crakken.utils.DataTablesHelper
 object CrawlRequestController extends Controller with MongoController {
   implicit val timeout = Timeout(10 seconds)
 
+  val statusRouter = Akka.system.actorSelection(Global.statusUpdateRouterName)
   val crawlRequestRouter = Akka.system.actorSelection(Global.crawlRequestRouterPathName)
   val repositoryRouter = Akka.system.actorSelection(Global.repositoryRouterPathName)
 
@@ -35,7 +35,7 @@ object CrawlRequestController extends Controller with MongoController {
         errors => BadRequest(views.html.crawlrequest.create(errors)),
         crawlRequest => {
           crawlRequestRouter ! crawlRequest
-          Ok(views.html.crawlrequest.submit(crawlRequest))
+          Redirect(s"/crawlrequest/${crawlRequest.id}")
         }
       )
   }
@@ -61,10 +61,6 @@ object CrawlRequestController extends Controller with MongoController {
       case response => BadRequest(response.toString)
     }
   }
-
-  /*def status(id: String) = WebSocket.async[JsValue] {
-
-  } */
 
   val crawlRequestForm: Form[CrawlRequest] =
     Form(

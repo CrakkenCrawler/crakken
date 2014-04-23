@@ -6,12 +6,12 @@ GET         /                                       crakken.controllers.Applicat
 GET         /login                                  crakken.controllers.ApplicationController.login
 GET         /crawlrequest                           crakken.controllers.CrawlRequestController.index
 GET         /crawlrequest/create                    crakken.controllers.CrawlRequestController.create
-POST        /crawlrequest/create                    crakken.controllers.CrawlRequestController.submit
+POST        /crawlrequest/submit                    crakken.controllers.CrawlRequestController.submit
 GET         /crawlrequest/list                      crakken.controllers.CrawlRequestController.list
 GET         /crawlrequest/:id                       crakken.controllers.CrawlRequestController.get(id)
 GET         /pagefetchrequest/listbycrid/:id        crakken.controllers.PageFetchRequestController.listByCrId(id:String)
 GET         /pagefetchrequest/:id                   crakken.controllers.PageFetchRequestController.getContent(id:String)
-#GET     /ws                         crakken.controllers.Application.ws
+GET         /status/*channelName                    crakken.controllers.StatusController.status(channelName)
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)
